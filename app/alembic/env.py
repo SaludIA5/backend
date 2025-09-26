@@ -11,6 +11,7 @@ sys.path.insert(0, project_root)
 
 from app.core.config import settings
 from app.databases.postgresql.db import Base
+import app.databases.postgresql.models
 
 config = context.config
 
