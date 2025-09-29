@@ -85,6 +85,7 @@ class UserRepository:
             await db.commit()
         except IntegrityError as e:
             await db.rollback()
+            # p.ej., email único
             raise e
         await db.refresh(user)
         return user

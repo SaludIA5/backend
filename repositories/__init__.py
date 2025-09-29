@@ -1,2 +1,6 @@
 from .patient import PatientRepository
-__all__ = ["PatientRepository"]
+from .diagnostic import DiagnosticRepository
+from .episode import EpisodeRepository
+from .user import UserRepository
+
+__all__ = ["PatientRepository", "DiagnosticRepository", "EpisodeRepository", "UserRepository"]
