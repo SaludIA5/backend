@@ -53,14 +53,6 @@ async def get_diagnostic(diag_id: int, db: Annotated[AsyncSession, Depends(get_d
         raise HTTPException(status_code=404, detail="Diagnostic not found")
     return diag
 
-# GET by CIE code
-@router.get("/by-cie/{cie_code}", response_model=DiagnosticOut)
-async def get_diagnostic_by_cie(cie_code: str, db: Annotated[AsyncSession, Depends(get_db)]):
-    diag = await DiagnosticRepository.get_by_cie_code(db, cie_code)
-    if not diag:
-        raise HTTPException(status_code=404, detail="Diagnostic not found")
-    return diag
-
 # UPDATE
 @router.patch("/{diag_id}", response_model=DiagnosticOut)
 async def update_diagnostic(diag_id: int, payload: DiagnosticUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
