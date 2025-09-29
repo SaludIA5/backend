@@ -29,6 +29,7 @@ class PatientRepository:
         res = await db.execute(select(Patient).where(Patient.rut == rut))
         return res.scalar_one_or_none()
 
+    # List paginated (+ search, + optional active filter)
     @staticmethod
     async def list_paginated(
         db: AsyncSession,
@@ -59,21 +60,7 @@ class PatientRepository:
         items = result.scalars().all()
         return items, total_items
 
-    # Update (PUT)
-    @staticmethod
-    async def replace(db: AsyncSession, patient: Patient, *, name: str, rut: str, age: int) -> Patient:
-        patient.name = name
-        patient.rut = rut
-        patient.age = age
-        try:
-            await db.commit()
-        except IntegrityError as e:
-            await db.rollback()
-            raise e
-        await db.refresh(patient)
-        return patient
-
-    # Update (PATCH)
+    # Update
     @staticmethod
     async def update_partial(
         db: AsyncSession,
@@ -100,14 +87,7 @@ class PatientRepository:
         await db.refresh(patient)
         return patient
 
-    # Delete
-    @staticmethod
-    async def soft_delete(db: AsyncSession, patient: Patient) -> Patient:
-        patient.active = False
-        await db.commit()
-        await db.refresh(patient)
-        return patient
-
+    # Delete 
     @staticmethod
     async def hard_delete(db: AsyncSession, patient: Patient) -> None:
         await db.delete(patient)

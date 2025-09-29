@@ -1,28 +1,85 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
+
 from app.databases.postgresql.db import get_db
-from app.databases.postgresql.models import Diagnostic
+from app.schemas.diagnostic import (
+    DiagnosticCreate, DiagnosticUpdate, DiagnosticOut, DiagnosticPage, PageMeta
+)
+from app.repositories.diagnostic import DiagnosticRepository
 
 router = APIRouter(prefix="/diagnostics", tags=["diagnostics"])
 
-@router.post("/")
-async def create_diagnostic(cie_code: str, description: str | None = None, db: AsyncSession = Depends(get_db)):
-    new_diag = Diagnostic(cie_code=cie_code, description=description)
-    db.add(new_diag)
-    await db.commit()
-    await db.refresh(new_diag)
-    return new_diag
+def _total_pages(total: int, size: int) -> int:
+    return (total + size - 1) // size if size else 1
 
-@router.get("/")
-async def list_diagnostics(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Diagnostic))
-    return result.scalars().all()
+# CREATE
+@router.post("/", response_model=DiagnosticOut, status_code=status.HTTP_201_CREATED)
+async def create_diagnostic(payload: DiagnosticCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+    try:
+        return await DiagnosticRepository.create(
+            db, cie_code=payload.cie_code, description=payload.description
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="CIE code ya registrado")
 
-@router.get("/{diag_id}")
-async def get_diagnostic(diag_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Diagnostic).where(Diagnostic.id == diag_id))
-    diag = result.scalar_one_or_none()
+# LIST (con paginación + búsqueda opcional)
+@router.get("/", response_model=DiagnosticPage)
+async def list_diagnostics(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    search: str | None = None,
+):
+    items, total = await DiagnosticRepository.list_paginated(
+        db, page=page, page_size=page_size, search=search
+    )
+    return DiagnosticPage(
+        items=items,
+        meta=PageMeta(
+            page=page,
+            page_size=page_size,
+            total_items=total,
+            total_pages=_total_pages(total, page_size),
+        ),
+    )
+
+# GET by ID
+@router.get("/{diag_id}", response_model=DiagnosticOut)
+async def get_diagnostic(diag_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    diag = await DiagnosticRepository.get_by_id(db, diag_id)
     if not diag:
-        raise HTTPException(404, "Diagnostic not found")
+        raise HTTPException(status_code=404, detail="Diagnostic not found")
     return diag
+
+# GET by CIE code
+@router.get("/by-cie/{cie_code}", response_model=DiagnosticOut)
+async def get_diagnostic_by_cie(cie_code: str, db: Annotated[AsyncSession, Depends(get_db)]):
+    diag = await DiagnosticRepository.get_by_cie_code(db, cie_code)
+    if not diag:
+        raise HTTPException(status_code=404, detail="Diagnostic not found")
+    return diag
+
+# UPDATE
+@router.patch("/{diag_id}", response_model=DiagnosticOut)
+async def update_diagnostic(diag_id: int, payload: DiagnosticUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+    diag = await DiagnosticRepository.get_by_id(db, diag_id)
+    if not diag:
+        raise HTTPException(status_code=404, detail="Diagnostic not found")
+    try:
+        return await DiagnosticRepository.update_partial(
+            db, diag, **payload.model_dump(exclude_unset=True)
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="CIE code ya registrado")
+
+# DELETE
+@router.delete("/{diag_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_diagnostic(diag_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    diag = await DiagnosticRepository.get_by_id(db, diag_id)
+    if not diag:
+        raise HTTPException(status_code=404, detail="Diagnostic not found")
+    await DiagnosticRepository.hard_delete(db, diag)
+    return None
+
