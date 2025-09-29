@@ -1,38 +1,68 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
+from sqlalchemy.exc import IntegrityError
+
 from app.databases.postgresql.db import get_db
-from app.databases.postgresql.models import Patient
+from app.schemas import PatientCreate, PatientUpdate, PatientOut, PatientPage, PageMeta
+from app.repositories import PatientRepository
 
 router = APIRouter(prefix="/patients", tags=["patients"])
 
-@router.post("/")
-async def create_patient(name: str, rut: str, age: int, db: AsyncSession = Depends(get_db)):
-    new_patient = Patient(name=name, rut=rut, age=age, active=True)
-    db.add(new_patient)
-    await db.commit()
-    await db.refresh(new_patient)
-    return new_patient
+def _total_pages(total: int, size: int) -> int:
+    return (total + size - 1) // size if size else 1
 
-@router.get("/")
-async def list_patients(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Patient))
-    return result.scalars().all()
+# CREATE
+@router.post("/", response_model=PatientOut, status_code=status.HTTP_201_CREATED)
+async def create_patient(payload: PatientCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+    try:
+        return await PatientRepository.create(db, name=payload.name, rut=payload.rut, age=payload.age)
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="RUT ya registrado")
 
-@router.get("/{patient_id}")
-async def get_patient(patient_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Patient).where(Patient.id == patient_id))
-    patient = result.scalar_one_or_none()
+# LIST
+@router.get("/", response_model=PatientPage)
+async def list_patients(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    search: str | None = None,
+    active: bool | None = None,
+):
+    items, total = await PatientRepository.list_paginated(
+        db, page=page, page_size=page_size, search=search, active=active
+    )
+    return PatientPage(
+        items=items,
+        meta=PageMeta(
+            page=page, page_size=page_size, total_items=total, total_pages=_total_pages(total, page_size)
+        ),
+    )
+
+# GET BY ID
+@router.get("/{patient_id}", response_model=PatientOut)
+async def get_patient(patient_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    patient = await PatientRepository.get_by_id(db, patient_id)
     if not patient:
-        raise HTTPException(404, "Patient not found")
+        raise HTTPException(status_code=404, detail="Patient not found")
     return patient
 
-@router.delete("/{patient_id}")
-async def delete_patient(patient_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Patient).where(Patient.id == patient_id))
-    patient = result.scalar_one_or_none()
+# UPDATE
+@router.patch("/{patient_id}", response_model=PatientOut)
+async def update_patient(patient_id: int, payload: PatientUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+    patient = await PatientRepository.get_by_id(db, patient_id)
     if not patient:
-        raise HTTPException(404, "Patient not found")
-    await db.delete(patient)
-    await db.commit()
-    return {"deleted": patient_id}
+        raise HTTPException(status_code=404, detail="Patient not found")
+    try:
+        return await PatientRepository.update_partial(db, patient, **payload.model_dump(exclude_unset=True))
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="RUT ya registrado")
+
+# DELETE
+@router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_patient(patient_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    patient = await PatientRepository.get_by_id(db, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+    await PatientRepository.hard_delete(db, patient)
+    return None
