@@ -19,7 +19,7 @@ class DiagnosticOut(BaseModel):
     class Config:
         from_attributes = True  # para mapear desde SQLAlchemy
 
-class PageMeta(BaseModel):
+class DiagnosticPageMeta(BaseModel):
     page: int
     page_size: int
     total_items: int
@@ -27,4 +27,4 @@ class PageMeta(BaseModel):
 
 class DiagnosticPage(BaseModel):
     items: List[DiagnosticOut]
-    meta: PageMeta
+    meta: DiagnosticPageMeta

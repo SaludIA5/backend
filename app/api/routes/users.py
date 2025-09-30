@@ -1,96 +1,87 @@
-from typing import Optional, Tuple, List
-from sqlalchemy import select, func
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from passlib.hash import bcrypt
 
-from app.databases.postgresql.models import User
+from app.databases.postgresql.db import get_db
+from app.schemas.user import UserCreate, UserUpdate, UserOut, UserPage, UserPageMeta
+from app.repositories.user import UserRepository
 
-class UserRepository:
-    # Create
-    @staticmethod
-    async def create(
-        db: AsyncSession, *, name: str, email: str, password: str, role: str = "Otro"
-    ) -> User:
-        hashed = bcrypt.hash(password)
-        instance = User(name=name, email=email, hashed_password=hashed, role=role)
-        db.add(instance)
-        try:
-            await db.commit()
-        except IntegrityError as e:
-            await db.rollback()
-            raise e
-        await db.refresh(instance)
-        return instance
+router = APIRouter(prefix="/users", tags=["users"])
 
-    # Read
-    @staticmethod
-    async def get_by_id(db: AsyncSession, user_id: int) -> Optional[User]:
-        res = await db.execute(select(User).where(User.id == user_id))
-        return res.scalar_one_or_none()
+def _total_pages(total: int, size: int) -> int:
+    return (total + size - 1) // size if size else 1
 
-    @staticmethod
-    async def get_by_email(db: AsyncSession, email: str) -> Optional[User]:
-        res = await db.execute(select(User).where(User.email == email))
-        return res.scalar_one_or_none()
+# CREATE
+@router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
+async def create_user(payload: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+    try:
+        return await UserRepository.create(
+            db,
+            name=payload.name,
+            email=payload.email,
+            password=payload.password,
+            role=payload.role,
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Email ya registrado")
 
-    # List paginated + search (name/email)
-    @staticmethod
-    async def list_paginated(
-        db: AsyncSession,
-        *,
-        page: int = 1,
-        page_size: int = 10,
-        search: Optional[str] = None,
-        order_desc: bool = True,
-    ) -> Tuple[List[User], int]:
-        query = select(User)
-        count_q = select(func.count(User.id))
+# LIST (paginada + búsqueda)
+@router.get("/", response_model=UserPage)
+async def list_users(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    search: str | None = None,  # busca por name/email
+):
+    items, total = await UserRepository.list_paginated(
+        db, page=page, page_size=page_size, search=search
+    )
+    return UserPage(
+        items=items,
+        meta=UserPageMeta(
+            page=page,
+            page_size=page_size,
+            total_items=total,
+            total_pages=_total_pages(total, page_size),
+        ),
+    )
 
-        if search:
-            like = f"%{search}%"
-            from sqlalchemy import or_
-            cond = or_(User.name.ilike(like), User.email.ilike(like))
-            query = query.where(cond)
-            count_q = count_q.where(cond)
+# GET by ID
+@router.get("/{user_id}", response_model=UserOut)
+async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    user = await UserRepository.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
-        query = query.order_by(User.id.desc() if order_desc else User.id.asc())
+# GET by email
+@router.get("/by-email/{email}", response_model=UserOut)
+async def get_user_by_email(email: str, db: Annotated[AsyncSession, Depends(get_db)]):
+    user = await UserRepository.get_by_email(db, email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
-        total_items = (await db.execute(count_q)).scalar_one()
-        result = await db.execute(query.offset((page - 1) * page_size).limit(page_size))
-        items = result.scalars().all()
-        return items, total_items
+# UPDATE (PATCH único)
+@router.patch("/{user_id}", response_model=UserOut)
+async def update_user(user_id: int, payload: UserUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+    user = await UserRepository.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
 
-    # Update 
-    @staticmethod
-    async def update_partial(
-        db: AsyncSession,
-        user: User,
-        *,
-        name: Optional[str] = None,
-        email: Optional[str] = None,
-        password: Optional[str] = None,
-        role: Optional[str] = None,
-    ) -> User:
-        if name is not None:
-            user.name = name
-        if email is not None:
-            user.email = email
-        if role is not None:
-            user.role = role
-        if password is not None:
-            user.hashed_password = bcrypt.hash(password)
+    try:
+        return await UserRepository.update_partial(
+            db, user, **payload.model_dump(exclude_unset=True)
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Email ya registrado")
 
-        try:
-            await db.commit()
-        except IntegrityError as e:
-            await db.rollback()
-            raise e
-        await db.refresh(user)
-        return user
-
-    # Delete
-    @staticmethod
-    async def hard_delete(db: AsyncSession, user: User) -> None:
-        await db.delete(user)
-        await db.commit()
+# DELETE (hard)
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
+    user = await UserRepository.get_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    await UserRepository.hard_delete(db, user)
+    return None

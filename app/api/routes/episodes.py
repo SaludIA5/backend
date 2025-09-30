@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.databases.postgresql.db import get_db
 from app.schemas.episode import (
-    EpisodeCreate, EpisodeUpdate, EpisodeOut, EpisodePage, PageMeta
+    EpisodeCreate, EpisodeUpdate, EpisodeOut, EpisodePage, EpisodePageMeta
 )
 from app.repositories.episode import EpisodeRepository
 
@@ -41,7 +41,7 @@ async def list_episodes(
     )
     return EpisodePage(
         items=items,
-        meta=PageMeta(
+        meta=EpisodePageMeta(
             page=page,
             page_size=page_size,
             total_items=total,
@@ -81,4 +81,3 @@ async def delete_episode(episode_id: int, db: Annotated[AsyncSession, Depends(ge
         raise HTTPException(status_code=404, detail="Episode not found")
     await EpisodeRepository.hard_delete(db, ep)
     return None
-

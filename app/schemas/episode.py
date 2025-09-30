@@ -139,7 +139,7 @@ class EpisodeOut(BaseModel):
     class Config:
         from_attributes = True
 
-class PageMeta(BaseModel):
+class EpisodePageMeta(BaseModel):
     page: int
     page_size: int
     total_items: int
@@ -147,4 +147,4 @@ class PageMeta(BaseModel):
 
 class EpisodePage(BaseModel):
     items: List[EpisodeOut]
-    meta: PageMeta
+    meta: EpisodePageMeta

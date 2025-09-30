@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 
 from app.databases.postgresql.db import get_db
 from app.schemas.diagnostic import (
-    DiagnosticCreate, DiagnosticUpdate, DiagnosticOut, DiagnosticPage, PageMeta
+    DiagnosticCreate, DiagnosticUpdate, DiagnosticOut, DiagnosticPage, DiagnosticPageMeta
 )
 from app.repositories.diagnostic import DiagnosticRepository
 
@@ -24,7 +24,7 @@ async def create_diagnostic(payload: DiagnosticCreate, db: Annotated[AsyncSessio
     except IntegrityError:
         raise HTTPException(status_code=409, detail="CIE code ya registrado")
 
-# LIST (con paginación + búsqueda opcional)
+# LIST 
 @router.get("/", response_model=DiagnosticPage)
 async def list_diagnostics(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -37,7 +37,7 @@ async def list_diagnostics(
     )
     return DiagnosticPage(
         items=items,
-        meta=PageMeta(
+        meta=DiagnosticPageMeta(
             page=page,
             page_size=page_size,
             total_items=total,
@@ -74,4 +74,3 @@ async def delete_diagnostic(diag_id: int, db: Annotated[AsyncSession, Depends(ge
         raise HTTPException(status_code=404, detail="Diagnostic not found")
     await DiagnosticRepository.hard_delete(db, diag)
     return None
-

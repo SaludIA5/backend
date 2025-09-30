@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from app.databases.postgresql.db import get_db
-from app.schemas import PatientCreate, PatientUpdate, PatientOut, PatientPage, PageMeta
+from app.schemas import PatientCreate, PatientUpdate, PatientOut, PatientPage, PatientPageMeta
 from app.repositories import PatientRepository
 
 router = APIRouter(prefix="/patients", tags=["patients"])
@@ -34,8 +34,11 @@ async def list_patients(
     )
     return PatientPage(
         items=items,
-        meta=PageMeta(
-            page=page, page_size=page_size, total_items=total, total_pages=_total_pages(total, page_size)
+        meta=PatientPageMeta(
+            page=page,
+            page_size=page_size,
+            total_items=total,
+            total_pages=_total_pages(total, page_size),
         ),
     )
 

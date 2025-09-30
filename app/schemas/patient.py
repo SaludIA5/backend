@@ -23,7 +23,7 @@ class PatientOut(BaseModel):
     class Config:
         from_attributes = True  # (Pydantic v2)
 
-class PageMeta(BaseModel):
+class PatientPageMeta(BaseModel):
     page: int
     page_size: int
     total_items: int
@@ -31,4 +31,4 @@ class PageMeta(BaseModel):
 
 class PatientPage(BaseModel):
     items: List[PatientOut]
-    meta: PageMeta
+    meta: PatientPageMeta
