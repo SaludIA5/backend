@@ -146,3 +146,18 @@ Archivo del workflow: `.github/workflows/ci.yml`
 ---
 
 > Para más detalles, revisa la configuración en [`app/core/config.py`](app/core/config.py) y los routers en [`app/api/router.py`](app/api/router.py).
+
+## Acceder a la consola de PostgreSQL con Docker Compose
+
+Sigue estos pasos para conectarte a la base de datos PostgreSQL usando Docker Compose:
+
+1. **Abre una terminal y entra al contenedor de la base de datos:**
+
+   ```sh
+   docker exec -it postgresql_db bash
+   ```
+2. **Dentro del contenedor, accede a la consola de PostgreSQL:**
+
+   ```sh
+   psql -U saluai5_backend_user -d saluai5_backend_db
+   ```

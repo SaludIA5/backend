@@ -5,10 +5,16 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import pool
-from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
+
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
+
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+sys.path.insert(0, project_root)
+
 
 from app.core.config import settings
 from app.databases.postgresql.db import Base
+import app.databases.postgresql.models
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 sys.path.insert(0, project_root)
