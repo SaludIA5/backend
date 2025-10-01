@@ -1,4 +1,5 @@
 import uvicorn
+
 from app.core.config import global_config
 
 if __name__ == "__main__":

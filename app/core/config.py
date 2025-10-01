@@ -1,8 +1,8 @@
-import os
 from pathlib import Path
+from typing import Optional
+
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import Optional
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(dotenv_path=ROOT_DIR / ".env")
@@ -36,7 +36,11 @@ class DatabasePostgresqlConfig(BaseSettings):
     def get_database_url(self) -> str:
         if self.url:
             return self.url
-        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
+        return (
+            f"postgresql+asyncpg://{self.user}:{self.password}"
+            f"@{self.host}:{self.port}/{self.name}"
+        )
+
 
 
 class SecurityConfig(BaseSettings):

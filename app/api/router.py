@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter  
 from .routes.patients import router as patients_router
 from .routes.diagnostics import router as diagnostics_router
@@ -10,3 +9,4 @@ router.include_router(patients_router)
 router.include_router(diagnostics_router)
 router.include_router(episodes_router)
 router.include_router(users_router)
+

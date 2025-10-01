@@ -1,11 +1,17 @@
-import uvicorn
 import logging
+from datetime import datetime
+
+import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from app.api.router import router
 from app.core.config import global_config
+
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
 from app.params import FRONTEND_URL, FRONTEND_PORT
+
 
 logging.basicConfig(level=logging.INFO)
 

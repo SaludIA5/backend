@@ -89,6 +89,54 @@ Esto ejecutará las migraciones y levantará el backend en `http://localhost:800
     ```sh
     poetry run python run.py
     ```
+### Linter y formateo de código
+
+Usamos **Black**, **Isort** y **Flake8** para mantener un estilo de código consistente.
+
+- Revisar estilo:
+
+```sh
+poetry run black --check .
+poetry run isort --check-only .
+poetry run flake8 .
+```
+
+Arreglar formato automáticamente:
+
+```sh
+poetry run black .
+poetry run isort .
+```
+
+### Pre-commit hooks
+
+Para evitar subir código mal formateado, usamos `pre-commit`.
+
+- Instalar hooks:
+
+```sh
+poetry run pre-commit install
+```
+
+Cada vez que hagas commit, correrán Black, Isort y Flake8 automáticamente.
+
+- Para correr los checks manualmente en todo el repo:
+
+```sh
+poetry run pre-commit run --all-files
+```
+
+### CI con GitHub Actions
+
+El pipeline se ejecuta en cada push y pull request a `main`.
+Este flujo hace lo siguiente:
+
+- Instala dependencias con Poetry.
+- Corre linters (Black, Isort, Flake8).
+- Corre los tests (pytest).
+
+Archivo del workflow: `.github/workflows/ci.yml`
+
 
 ## Endpoints principales
 
