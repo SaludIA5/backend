@@ -5,7 +5,7 @@ from app.api.router import router
 from app.core.config import global_config
 from datetime import datetime
 from fastapi.middleware.cors import CORSMiddleware
-from  app.params import FRONTEND_URL, FRONTEND_PORT
+from app.params import FRONTEND_URL, FRONTEND_PORT
 
 logging.basicConfig(level=logging.INFO)
 
@@ -15,7 +15,7 @@ app = FastAPI(
     description=global_config.description,
     openapi_url=f"{global_config.api_prefix}{global_config.openapi_url}",
     docs_url=global_config.docs_url,
-    redoc_url=global_config.redoc_url
+    redoc_url=global_config.redoc_url,
 )
 
 app.add_middleware(
@@ -34,15 +34,14 @@ def read_root():
     welcome_message: str = f"SALUAI5 - Backend - {datetime.now().year}"
     return {"message": welcome_message}
 
+
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
 
+
 if __name__ == "__main__":
     print(global_config.port)
     uvicorn.run(
-        "app.main:app",
-        host=global_config.host,
-        port=global_config.port,
-        reload=True
+        "app.main:app", host=global_config.host, port=global_config.port, reload=True
     )

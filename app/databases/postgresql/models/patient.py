@@ -2,6 +2,7 @@ from sqlalchemy import String, Integer, Boolean, Column
 from sqlalchemy.orm import relationship
 from .base import BaseModel
 
+
 class Patient(BaseModel):
     __tablename__ = "patients"
 
@@ -10,4 +11,6 @@ class Patient(BaseModel):
     age = Column(Integer, nullable=False)
     active = Column(Boolean, nullable=False, server_default="true")
 
-    episodes = relationship("Episode", back_populates="patient", cascade="all, delete-orphan")
+    episodes = relationship(
+        "Episode", back_populates="patient", cascade="all, delete-orphan"
+    )

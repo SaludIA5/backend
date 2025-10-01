@@ -1,4 +1,13 @@
-from sqlalchemy import String, Integer, ForeignKey, Column, DateTime, Boolean, Numeric, Date
+from sqlalchemy import (
+    String,
+    Integer,
+    ForeignKey,
+    Column,
+    DateTime,
+    Boolean,
+    Numeric,
+    Date,
+)
 from sqlalchemy.orm import relationship
 from .base import BaseModel
 from sqlalchemy.ext.declarative import declared_attr
@@ -10,14 +19,30 @@ from app.databases.postgresql.models.diagnostic import Diagnostic
 episode_diagnostic = Table(
     "episode_diagnostic",
     BaseModel.metadata,
-    Column("episode_id", Integer, ForeignKey("episodes.id", ondelete="CASCADE"), primary_key=True),
-    Column("diagnostic_id", Integer, ForeignKey("diagnostics.id", ondelete="RESTRICT"), primary_key=True),
+    Column(
+        "episode_id",
+        Integer,
+        ForeignKey("episodes.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "diagnostic_id",
+        Integer,
+        ForeignKey("diagnostics.id", ondelete="RESTRICT"),
+        primary_key=True,
+    ),
 )
+
 
 class Episode(BaseModel):
     __tablename__ = "episodes"
 
-    patient_id = Column(Integer, ForeignKey("patients.id", ondelete="CASCADE"), nullable=False, index=True)
+    patient_id = Column(
+        Integer,
+        ForeignKey("patients.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     numero_episodio = Column(String(50), nullable=False, unique=True, index=True)
     fecha_ingreso = Column(Date)
@@ -45,7 +70,7 @@ class Episode(BaseModel):
     tipo_cama = Column(String(50))
     glasgow_score = Column(Integer)
     fio2 = Column(Numeric(4, 1))
-    fio2_ge_50 = Column(Boolean) # FiO₂ ≥ 50%
+    fio2_ge_50 = Column(Boolean)  # FiO₂ ≥ 50%
     ventilacion_mecanica = Column(Boolean)
     cirugia_realizada = Column(Boolean)
     cirugia_mismo_dia_ingreso = Column(Boolean)
@@ -73,9 +98,7 @@ class Episode(BaseModel):
 
     # Relación muchos-a-muchos
     diagnostics = relationship(
-        "Diagnostic",
-        secondary=episode_diagnostic,
-        backref="episodes"
+        "Diagnostic", secondary=episode_diagnostic, backref="episodes"
     )
 
     patient = relationship("Patient", back_populates="episodes")
