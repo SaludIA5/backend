@@ -1,3 +1,4 @@
+
 from fastapi import APIRouter  
 from .routes.patients import router as patients_router
 from .routes.diagnostics import router as diagnostics_router
