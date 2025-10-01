@@ -81,7 +81,7 @@ class Episode(BaseModel):
     dialisis = Column(Boolean)
     trombolisis = Column(Boolean)
     trombolisis_mismo_dia_ingreso = Column(Boolean)
-    pcr = Column(Boolean)
+    pcr = Numeric(6, 2)
     hemoglobina = Column(Numeric(4, 1))
     creatinina = Column(Numeric(5, 2))
     nitrogeno_ureico = Column(Numeric(5, 2))

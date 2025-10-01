@@ -1,4 +1,4 @@
-from sqlalchemy import String, Column
+from sqlalchemy import String, Column, Integer, Boolean
 from .base import BaseModel
 
 
@@ -8,4 +8,5 @@ class User(BaseModel):
     name = Column(String(120), nullable=False)
     email = Column(String(255), nullable=False, unique=True, index=True)
     hashed_password = Column(String(255), nullable=False)
-    role = Column(String(50), nullable=False, default="Otro")
+    is_chief_doctor = Column(Boolean, default=False)
+    is_doctor = Column(Boolean, default=False)
