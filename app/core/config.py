@@ -42,7 +42,6 @@ class DatabasePostgresqlConfig(BaseSettings):
         )
 
 
-
 class SecurityConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="BACKEND_SECURITY_")
 

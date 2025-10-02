@@ -1,7 +1,8 @@
-import app.api.lib.machine_learning_models.models.models_utils as u
 from pathlib import Path
-import pandas as pd
+
 import joblib
+import pandas as pd
+import saluai5_ml.models.utils as u
 
 BINARY_COLUMNS = [
     "antecedentes_cardiaco",
@@ -53,7 +54,9 @@ def get_representative_values_colums() -> tuple:
     """
 
     base_path = Path(__file__).resolve().parent.parent.parent
-    data_cleaned_file_path = base_path / "datasets" / "initial_data_cleaned.csv"
+    data_cleaned_file_path = (
+        base_path / "data" / "processed" / "initial_data_cleaned.csv"
+    )
     df = pd.read_csv(data_cleaned_file_path, sep=";", encoding="utf-8")
 
     mean_nc = u.get_means_numerical_columns(df, NUMERICAL_COLUMNS)
@@ -128,13 +131,9 @@ def apply_encoders_to_columns(form_data: dict) -> any:
     Apply the necessary encoders to the form data.
     """
     base_path = Path(__file__).resolve().parent.parent.parent
-    ohe_path = base_path / "encoder_serializers" / "categorical_one_hot_encoder.pkl"
-    label_encoder_path = (
-        base_path / "encoder_serializers" / "diagnostics_label_encoder.pkl"
-    )
-    numerical_encoder_path = (
-        base_path / "encoder_serializers" / "numerical_min_max_scaler.pkl"
-    )
+    ohe_path = base_path / "encoders" / "categorical_one_hot_encoder.pkl"
+    base_path / "encoders" / "diagnostics_label_encoder.pkl"
+    numerical_encoder_path = base_path / "encoders" / "numerical_min_max_scaler.pkl"
     ohe_encoder = joblib.load(ohe_path)
     # label_encoder = joblib.load(label_encoder_path)
     numerical_encoder = joblib.load(numerical_encoder_path)
@@ -190,7 +189,7 @@ def make_prediction(form_data: dict) -> dict:
     preprocessed_form = preprocess_form_data(form_data)
     completed_form = fill_missing_values(preprocessed_form)
     df_encoded = apply_encoders_to_columns(completed_form)
-    rf_model = load_model("xgboost_model.pkl")
+    rf_model = load_model("random_forest_model.pkl")
     return get_model_prediction(rf_model, df_encoded)
 
 

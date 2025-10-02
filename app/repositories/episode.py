@@ -1,10 +1,12 @@
-from typing import Optional, Tuple, List
-from sqlalchemy import select, func
-from sqlalchemy.orm import selectinload
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
+from typing import List, Optional, Tuple
 
-from app.databases.postgresql.models import Episode, Diagnostic
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from app.databases.postgresql.models import Diagnostic, Episode
+
 
 class EpisodeRepository:
     # Create
@@ -12,14 +14,20 @@ class EpisodeRepository:
     async def create(
         db: AsyncSession,
         *,
-        data: dict,                 # campos de Episode
-        diagnostics_ids: Optional[List[int]] = None
+        data: dict,  # campos de Episode
+        diagnostics_ids: Optional[List[int]] = None,
     ) -> Episode:
         ep = Episode(**data)
         if diagnostics_ids:
-            diags = (await db.execute(
-                select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
-            )).scalars().all()
+            diags = (
+                (
+                    await db.execute(
+                        select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
+                    )
+                )
+                .scalars()
+                .all()
+            )
             ep.diagnostics = diags
 
         db.add(ep)
@@ -43,7 +51,9 @@ class EpisodeRepository:
         return res.scalar_one_or_none()
 
     @staticmethod
-    async def get_by_numero(db: AsyncSession, numero_episodio: str) -> Optional[Episode]:
+    async def get_by_numero(
+        db: AsyncSession, numero_episodio: str
+    ) -> Optional[Episode]:
         res = await db.execute(
             select(Episode)
             .options(selectinload(Episode.diagnostics))
@@ -58,7 +68,9 @@ class EpisodeRepository:
         *,
         page: int = 1,
         page_size: int = 10,
-        search: Optional[str] = None,       # busca por numero_episodio / estado_del_caso / centro
+        search: Optional[
+            str
+        ] = None,  # busca por numero_episodio / estado_del_caso / centro
         patient_id: Optional[int] = None,
         order_desc: bool = True,
     ) -> Tuple[List[Episode], int]:
@@ -68,6 +80,7 @@ class EpisodeRepository:
         if search:
             like = f"%{search}%"
             from sqlalchemy import or_
+
             cond = or_(
                 Episode.numero_episodio.ilike(like),
                 Episode.estado_del_caso.ilike(like),
@@ -93,7 +106,7 @@ class EpisodeRepository:
         db: AsyncSession,
         ep: Episode,
         *,
-        data: dict,                               # campos simples a actualizar
+        data: dict,  # campos simples a actualizar
         diagnostics_ids: Optional[List[int]] = None,  # si viene, reemplaza asociaciones
     ) -> Episode:
         # Asignar campos simples
@@ -102,9 +115,15 @@ class EpisodeRepository:
 
         # Actualizar M2M
         if diagnostics_ids is not None:
-            diags = (await db.execute(
-                select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
-            )).scalars().all()
+            diags = (
+                (
+                    await db.execute(
+                        select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
+                    )
+                )
+                .scalars()
+                .all()
+            )
             ep.diagnostics = diags
 
         try:
@@ -116,7 +135,7 @@ class EpisodeRepository:
         await db.refresh(ep)
         return ep
 
-    # Delete 
+    # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, ep: Episode) -> None:
         await db.delete(ep)

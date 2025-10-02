@@ -1,22 +1,31 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
-from app.schemas.episode import (
-    EpisodeCreate, EpisodeUpdate, EpisodeOut, EpisodePage, EpisodePageMeta
-)
 from app.repositories.episode import EpisodeRepository
+from app.schemas.episode import (
+    EpisodeCreate,
+    EpisodeOut,
+    EpisodePage,
+    EpisodePageMeta,
+    EpisodeUpdate,
+)
 
 router = APIRouter(prefix="/episodes", tags=["episodes"])
+
 
 def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
 
+
 # CREATE
 @router.post("/", response_model=EpisodeOut, status_code=status.HTTP_201_CREATED)
-async def create_episode(payload: EpisodeCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def create_episode(
+    payload: EpisodeCreate, db: Annotated[AsyncSession, Depends(get_db)]
+):
     try:
         ep = await EpisodeRepository.create(
             db,
@@ -26,6 +35,7 @@ async def create_episode(payload: EpisodeCreate, db: Annotated[AsyncSession, Dep
         return ep
     except IntegrityError:
         raise HTTPException(status_code=409, detail="numero_episodio ya registrado")
+
 
 # LIST (paginada + filtros)
 @router.get("/", response_model=EpisodePage)
@@ -49,6 +59,7 @@ async def list_episodes(
         ),
     )
 
+
 # GET by ID
 @router.get("/{episode_id}", response_model=EpisodeOut)
 async def get_episode(episode_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
@@ -57,9 +68,14 @@ async def get_episode(episode_id: int, db: Annotated[AsyncSession, Depends(get_d
         raise HTTPException(status_code=404, detail="Episode not found")
     return ep
 
-# UPDATE 
+
+# UPDATE
 @router.patch("/{episode_id}", response_model=EpisodeOut)
-async def update_episode(episode_id: int, payload: EpisodeUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_episode(
+    episode_id: int,
+    payload: EpisodeUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
     ep = await EpisodeRepository.get_by_id(db, episode_id)
     if not ep:
         raise HTTPException(status_code=404, detail="Episode not found")
@@ -73,7 +89,8 @@ async def update_episode(episode_id: int, payload: EpisodeUpdate, db: Annotated[
     except IntegrityError:
         raise HTTPException(status_code=409, detail="numero_episodio ya registrado")
 
-# DELETE 
+
+# DELETE
 @router.delete("/{episode_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_episode(episode_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     ep = await EpisodeRepository.get_by_id(db, episode_id)

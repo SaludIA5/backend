@@ -1,8 +1,10 @@
-from typing import Optional, List
-from pydantic import BaseModel, Field, field_validator
 import re
+from typing import List, Optional
+
+from pydantic import BaseModel, Field, field_validator
 
 EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
+
 
 # -------- Inputs --------
 class UserCreate(BaseModel):
@@ -17,6 +19,7 @@ class UserCreate(BaseModel):
             raise ValueError("Invalid email format")
         return v
 
+
 class UserUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=120)
     email: Optional[str] = None
@@ -29,6 +32,7 @@ class UserUpdate(BaseModel):
             raise ValueError("Invalid email format")
         return v
 
+
 # -------- Outputs --------
 class UserOut(BaseModel):
     id: int
@@ -39,13 +43,14 @@ class UserOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 class UserPageMeta(BaseModel):
     page: int
     page_size: int
     total_items: int
     total_pages: int
 
+
 class UserPage(BaseModel):
     items: List[UserOut]
     meta: UserPageMeta
-

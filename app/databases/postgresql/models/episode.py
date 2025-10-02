@@ -1,20 +1,17 @@
+# Tabla de asociación muchos-a-muchos
 from sqlalchemy import (
-    String,
-    Integer,
-    ForeignKey,
-    Column,
-    DateTime,
     Boolean,
-    Numeric,
+    Column,
     Date,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Table,
 )
 from sqlalchemy.orm import relationship
-from .base import BaseModel
-from sqlalchemy.ext.declarative import declared_attr
 
-# Tabla de asociación muchos-a-muchos
-from sqlalchemy import Table
-from app.databases.postgresql.models.diagnostic import Diagnostic
+from .base import BaseModel
 
 episode_diagnostic = Table(
     "episode_diagnostic",

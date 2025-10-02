@@ -1,12 +1,15 @@
-from app.api.lib.machine_learning_models.clean_data import (
-    data_cleaner,
-    get_base_directory,
-    save_df_to_csv,
-)
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder, MinMaxScaler
-import pandas as pd
+from pathlib import Path
+
 import joblib
+import pandas as pd
+from saluai5_ml.preprocessing.cleaner import data_cleaner, save_df_to_csv
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler, OneHotEncoder
+
+
+def get_base_directory() -> Path:
+    """Get the base directory of the package."""
+    return Path(__file__).resolve().parent.parent
 
 
 def preprocess_data(file_name: str) -> pd.DataFrame:
@@ -18,7 +21,7 @@ def serialize_encoder(encoder, file_name: str) -> None:
     Serialize the encoder to a file.
     """
     base_path = get_base_directory()
-    file_path = f"{base_path}/encoder_serializers/{file_name}"
+    file_path = base_path / "encoders" / file_name
     joblib.dump(encoder, file_path)
 
 
@@ -27,7 +30,7 @@ def read_csv_file(file_name: str) -> pd.DataFrame:
     Read a CSV file and return a DataFrame.
     """
     base_directory = get_base_directory()
-    file_path = f"{base_directory}/datasets/{file_name}"
+    file_path = base_directory / "data" / "processed" / file_name
     return pd.read_csv(file_path, sep=";", encoding="utf-8")
 
 
