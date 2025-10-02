@@ -1,0 +1,34 @@
+[project]
+name = "saluai5-ml"
+version = "0.1.0"
+description = "Machine Learning models for SALUAI5 episode pertinence prediction"
+authors = [
+    {name = "JOSE", email = "jlhuerta@uc.cl"}
+]
+readme = "README.md"
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "pandas>=2.0.0,<3.0.0",
+    "numpy>=1.24.0,<2.0.0",
+    "scikit-learn>=1.3.0,<2.0.0",
+    "xgboost>=2.0.0,<4.0.0",
+    "joblib>=1.3.0,<2.0.0",
+    "openpyxl>=3.1.0,<4.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["saluai5_ml*"]
+
+[tool.setuptools.package-data]
+saluai5_ml = [
+    "data/raw/*.xlsx",
+    "data/processed/*.csv",
+    "models/*/*.pkl",
+    "encoders/*.pkl",
+]
+

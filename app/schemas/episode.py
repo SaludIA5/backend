@@ -1,6 +1,8 @@
-from typing import Optional, List
-from pydantic import BaseModel, Field
 from datetime import date
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
+
 
 # Un “lite” para mostrar diagnosticos asociados en la salida
 class DiagnosticLite(BaseModel):
@@ -10,6 +12,7 @@ class DiagnosticLite(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 # -------- Inputs --------
 class EpisodeCreate(BaseModel):
@@ -69,6 +72,7 @@ class EpisodeCreate(BaseModel):
     # IDs de diagnósticos para asociar (muchos-a-muchos)
     diagnostics_ids: Optional[List[int]] = None
 
+
 class EpisodeUpdate(BaseModel):
     # todos opcionales: update parcial (PATCH)
     patient_id: Optional[int] = None
@@ -125,6 +129,7 @@ class EpisodeUpdate(BaseModel):
 
     diagnostics_ids: Optional[List[int]] = None
 
+
 # -------- Outputs --------
 class EpisodeOut(BaseModel):
     id: int
@@ -139,11 +144,13 @@ class EpisodeOut(BaseModel):
     class Config:
         from_attributes = True
 
+
 class EpisodePageMeta(BaseModel):
     page: int
     page_size: int
     total_items: int
     total_pages: int
+
 
 class EpisodePage(BaseModel):
     items: List[EpisodeOut]

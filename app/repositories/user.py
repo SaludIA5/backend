@@ -1,10 +1,12 @@
-from typing import Optional, Tuple, List
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
+from typing import List, Optional, Tuple
+
 from passlib.hash import bcrypt
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.models import User
+
 
 class UserRepository:
     # Create
@@ -50,6 +52,7 @@ class UserRepository:
         if search:
             like = f"%{search}%"
             from sqlalchemy import or_
+
             cond = or_(User.name.ilike(like), User.email.ilike(like))
             query = query.where(cond)
             count_q = count_q.where(cond)
@@ -61,7 +64,7 @@ class UserRepository:
         items = result.scalars().all()
         return items, total_items
 
-    # Update 
+    # Update
     @staticmethod
     async def update_partial(
         db: AsyncSession,

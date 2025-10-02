@@ -1,10 +1,12 @@
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 
 def get_base_directory() -> Path:
-    return Path(__file__).resolve().parent
+    """Get the base directory of the package."""
+    return Path(__file__).resolve().parent.parent
 
 
 def read_excel_file(file_path: str, sheet: int = 0) -> pd.DataFrame:
@@ -98,8 +100,8 @@ def data_cleaner(file_name: str, file_name_output: str) -> pd.DataFrame:
     Preprocess the data.
     """
     base_directory = get_base_directory()
-    file_path = f"{base_directory}/datasets/{file_name}"
-    df = read_excel_file(file_path, sheet=0)
+    file_path = base_directory / "data" / "raw" / file_name
+    df = read_excel_file(str(file_path), sheet=0)
     df_filtered = filter_valid_episodes(
         df, "VALIDACIÓN", ["PERTINENTE", "NO PERTINENTE"]
     )
@@ -197,8 +199,8 @@ def data_cleaner(file_name: str, file_name_output: str) -> pd.DataFrame:
         ],
     )
 
-    output_file_path = f"{base_directory}/datasets/{file_name_output}"
-    save_df_to_csv(df, output_file_path)
+    output_file_path = base_directory / "data" / "processed" / file_name_output
+    save_df_to_csv(df, str(output_file_path))
 
 
 if __name__ == "__main__":

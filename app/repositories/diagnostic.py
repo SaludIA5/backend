@@ -1,13 +1,18 @@
-from typing import Optional, Tuple, List
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Optional, Tuple
+
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.databases.postgresql.models import Diagnostic
+
 
 class DiagnosticRepository:
     # Create
     @staticmethod
-    async def create(db: AsyncSession, *, cie_code: str, description: Optional[str]) -> Diagnostic:
+    async def create(
+        db: AsyncSession, *, cie_code: str, description: Optional[str]
+    ) -> Diagnostic:
         instance = Diagnostic(cie_code=cie_code, description=description)
         db.add(instance)
         try:
@@ -26,7 +31,9 @@ class DiagnosticRepository:
 
     @staticmethod
     async def get_by_cie_code(db: AsyncSession, cie_code: str) -> Optional[Diagnostic]:
-        res = await db.execute(select(Diagnostic).where(Diagnostic.cie_code == cie_code))
+        res = await db.execute(
+            select(Diagnostic).where(Diagnostic.cie_code == cie_code)
+        )
         return res.scalar_one_or_none()
 
     # List paginated + search
@@ -44,11 +51,15 @@ class DiagnosticRepository:
 
         if search:
             like = f"%{search}%"
-            cond = (Diagnostic.cie_code.ilike(like)) | (Diagnostic.description.ilike(like))
+            cond = (Diagnostic.cie_code.ilike(like)) | (
+                Diagnostic.description.ilike(like)
+            )
             query = query.where(cond)
             count_q = count_q.where(cond)
 
-        query = query.order_by(Diagnostic.id.desc() if order_desc else Diagnostic.id.asc())
+        query = query.order_by(
+            Diagnostic.id.desc() if order_desc else Diagnostic.id.asc()
+        )
 
         total_items = (await db.execute(count_q)).scalar_one()
         result = await db.execute(query.offset((page - 1) * page_size).limit(page_size))

@@ -1,5 +1,5 @@
-import app.api.lib.machine_learning_models.models.models_utils as u
-import app.api.lib.machine_learning_models.prepare_data as prep
+import saluai5_ml.models.utils as u
+import saluai5_ml.preprocessing.transformer as prep
 from xgboost import XGBClassifier
 
 
