@@ -1,3 +1,20 @@
 [flake8]
 max-line-length = 88
-exclude = .git,__pycache__,venv,.venv
+extend-ignore = E203, E501, W503
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .pytest_cache,
+    .mypy_cache,
+    alembic/versions,
+    migrations,
+    build,
+    dist,
+    *.egg-info
+
+# Ignorar E402 (module level import not at top) en archivos de Alembic
+per-file-ignores =
+    */alembic/env.py:E402
+    */alembic/versions/*.py:E501

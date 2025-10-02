@@ -1,20 +1,25 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
-from app.schemas.user import UserCreate, UserUpdate, UserOut, UserPage, UserPageMeta
 from app.repositories.user import UserRepository
+from app.schemas.user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
+
 
 def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
 
+
 # CREATE
 @router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
-async def create_user(payload: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def create_user(
+    payload: UserCreate, db: Annotated[AsyncSession, Depends(get_db)]
+):
     try:
         return await UserRepository.create(
             db,
@@ -25,6 +30,7 @@ async def create_user(payload: UserCreate, db: Annotated[AsyncSession, Depends(g
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Email ya registrado")
+
 
 # LIST (paginada + búsqueda)
 @router.get("/", response_model=UserPage)
@@ -47,6 +53,7 @@ async def list_users(
         ),
     )
 
+
 # GET by ID
 @router.get("/{user_id}", response_model=UserOut)
 async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
@@ -54,6 +61,7 @@ async def get_user(user_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
 
 # GET by email
 @router.get("/by-email/{email}", response_model=UserOut)
@@ -63,9 +71,12 @@ async def get_user_by_email(email: str, db: Annotated[AsyncSession, Depends(get_
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
+
 # UPDATE (PATCH único)
 @router.patch("/{user_id}", response_model=UserOut)
-async def update_user(user_id: int, payload: UserUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_user(
+    user_id: int, payload: UserUpdate, db: Annotated[AsyncSession, Depends(get_db)]
+):
     user = await UserRepository.get_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -76,6 +87,7 @@ async def update_user(user_id: int, payload: UserUpdate, db: Annotated[AsyncSess
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Email ya registrado")
+
 
 # DELETE (hard)
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)

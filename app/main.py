@@ -7,11 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import router
 from app.core.config import global_config
-
-from datetime import datetime
-from fastapi.middleware.cors import CORSMiddleware
-from app.params import FRONTEND_URL, FRONTEND_PORT
-
+from app.params import FRONTEND_PORT, FRONTEND_URL
 
 logging.basicConfig(level=logging.INFO)
 

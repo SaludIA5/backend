@@ -1,22 +1,31 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
-from app.schemas.diagnostic import (
-    DiagnosticCreate, DiagnosticUpdate, DiagnosticOut, DiagnosticPage, DiagnosticPageMeta
-)
 from app.repositories.diagnostic import DiagnosticRepository
+from app.schemas.diagnostic import (
+    DiagnosticCreate,
+    DiagnosticOut,
+    DiagnosticPage,
+    DiagnosticPageMeta,
+    DiagnosticUpdate,
+)
 
 router = APIRouter(prefix="/diagnostics", tags=["diagnostics"])
+
 
 def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
 
+
 # CREATE
 @router.post("/", response_model=DiagnosticOut, status_code=status.HTTP_201_CREATED)
-async def create_diagnostic(payload: DiagnosticCreate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def create_diagnostic(
+    payload: DiagnosticCreate, db: Annotated[AsyncSession, Depends(get_db)]
+):
     try:
         return await DiagnosticRepository.create(
             db, cie_code=payload.cie_code, description=payload.description
@@ -24,7 +33,8 @@ async def create_diagnostic(payload: DiagnosticCreate, db: Annotated[AsyncSessio
     except IntegrityError:
         raise HTTPException(status_code=409, detail="CIE code ya registrado")
 
-# LIST 
+
+# LIST
 @router.get("/", response_model=DiagnosticPage)
 async def list_diagnostics(
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -45,6 +55,7 @@ async def list_diagnostics(
         ),
     )
 
+
 # GET by ID
 @router.get("/{diag_id}", response_model=DiagnosticOut)
 async def get_diagnostic(diag_id: int, db: Annotated[AsyncSession, Depends(get_db)]):
@@ -53,9 +64,14 @@ async def get_diagnostic(diag_id: int, db: Annotated[AsyncSession, Depends(get_d
         raise HTTPException(status_code=404, detail="Diagnostic not found")
     return diag
 
+
 # UPDATE
 @router.patch("/{diag_id}", response_model=DiagnosticOut)
-async def update_diagnostic(diag_id: int, payload: DiagnosticUpdate, db: Annotated[AsyncSession, Depends(get_db)]):
+async def update_diagnostic(
+    diag_id: int,
+    payload: DiagnosticUpdate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
     diag = await DiagnosticRepository.get_by_id(db, diag_id)
     if not diag:
         raise HTTPException(status_code=404, detail="Diagnostic not found")
@@ -65,6 +81,7 @@ async def update_diagnostic(diag_id: int, payload: DiagnosticUpdate, db: Annotat
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="CIE code ya registrado")
+
 
 # DELETE
 @router.delete("/{diag_id}", status_code=status.HTTP_204_NO_CONTENT)

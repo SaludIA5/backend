@@ -1,10 +1,11 @@
-import app.api.lib.machine_learning_models.prepare_data as prep
-import app.api.lib.machine_learning_models.clean_data as c
-from sklearn.metrics import classification_report, confusion_matrix
+from pathlib import Path
 from typing import Callable
+
 import joblib
 import pandas as pd
-from pathlib import Path
+import saluai5_ml.preprocessing.cleaner as c
+import saluai5_ml.preprocessing.transformer as prep
+from sklearn.metrics import classification_report, confusion_matrix
 
 
 def file_exists_in_parent_folder(file_name: str) -> bool:

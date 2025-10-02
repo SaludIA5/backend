@@ -1,8 +1,11 @@
-from typing import Optional, Tuple, List
-from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Optional, Tuple
+
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.databases.postgresql.models import Patient
+
 
 class PatientRepository:
     # Create
@@ -87,7 +90,7 @@ class PatientRepository:
         await db.refresh(patient)
         return patient
 
-    # Delete 
+    # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, patient: Patient) -> None:
         await db.delete(patient)
