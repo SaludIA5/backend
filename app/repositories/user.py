@@ -16,15 +16,12 @@ class UserRepository:
         *,
         name: str,
         email: str,
-        password: str,
         is_chief_doctor: bool = False,
         is_doctor: bool = False,
     ) -> User:
-        hashed = bcrypt.hash(password)
         instance = User(
             name=name,
             email=email,
-            hashed_password=hashed,
             is_chief_doctor=is_chief_doctor,
             is_doctor=is_doctor,
         )
