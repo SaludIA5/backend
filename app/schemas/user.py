@@ -10,7 +10,6 @@ EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     email: str
-    password: str = Field(..., min_length=6, max_length=255)
     is_chief_doctor: bool = False
     is_doctor: bool = False
 
@@ -24,7 +23,6 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=120)
     email: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=6, max_length=255)
     is_chief_doctor: Optional[bool] = None
     is_doctor: Optional[bool] = None
 
