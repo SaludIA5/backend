@@ -5,15 +5,15 @@ from pydantic import BaseModel, Field
 
 # -------- Inputs --------
 class PatientCreate(BaseModel):
-    name: str = Field(..., min_length=1, max_length=200)
+    name: str = Field(..., min_length=1, max_length=120)  
     rut: str = Field(
         ..., min_length=3, max_length=20, description="RUT sin puntos, con guión"
     )
-    age: int = Field(..., ge=0, le=130)
+    age: Optional[int] = Field(None, ge=0, le=130)
 
 
 class PatientUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    name: Optional[str] = Field(None, min_length=1, max_length=120) 
     rut: Optional[str] = Field(None, min_length=3, max_length=20)
     age: Optional[int] = Field(None, ge=0, le=130)
     active: Optional[bool] = None

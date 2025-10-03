@@ -90,5 +90,5 @@ class DiagnosticRepository:
     # Delete (hard)
     @staticmethod
     async def hard_delete(db: AsyncSession, diag: Diagnostic) -> None:
-        await db.delete(diag)
+        db.delete(diag)
         await db.commit()

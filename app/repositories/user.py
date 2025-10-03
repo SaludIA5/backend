@@ -12,10 +12,19 @@ class UserRepository:
     # Create
     @staticmethod
     async def create(
-        db: AsyncSession, *, name: str, email: str, password: str, role: str = "Otro"
+        db: AsyncSession,
+        *,
+        name: str,
+        email: str,
+        is_chief_doctor: bool = False,
+        is_doctor: bool = False,
     ) -> User:
-        hashed = bcrypt.hash(password)
-        instance = User(name=name, email=email, hashed_password=hashed, role=role)
+        instance = User(
+            name=name,
+            email=email,
+            is_chief_doctor=is_chief_doctor,
+            is_doctor=is_doctor,
+        )
         db.add(instance)
         try:
             await db.commit()
@@ -52,7 +61,6 @@ class UserRepository:
         if search:
             like = f"%{search}%"
             from sqlalchemy import or_
-
             cond = or_(User.name.ilike(like), User.email.ilike(like))
             query = query.where(cond)
             count_q = count_q.where(cond)
@@ -73,14 +81,17 @@ class UserRepository:
         name: Optional[str] = None,
         email: Optional[str] = None,
         password: Optional[str] = None,
-        role: Optional[str] = None,
+        is_chief_doctor: Optional[bool] = None,
+        is_doctor: Optional[bool] = None,
     ) -> User:
         if name is not None:
             user.name = name
         if email is not None:
             user.email = email
-        if role is not None:
-            user.role = role
+        if is_chief_doctor is not None:
+            user.is_chief_doctor = is_chief_doctor
+        if is_doctor is not None:
+            user.is_doctor = is_doctor
         if password is not None:
             user.hashed_password = bcrypt.hash(password)
 
@@ -96,5 +107,5 @@ class UserRepository:
     # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, user: User) -> None:
-        await db.delete(user)
+        db.delete(user)   # ✅ sin await
         await db.commit()

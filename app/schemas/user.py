@@ -10,8 +10,8 @@ EMAIL_REGEX = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 class UserCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=120)
     email: str
-    password: str = Field(..., min_length=6, max_length=255)
-    role: str = Field(default="Otro", min_length=1, max_length=50)
+    is_chief_doctor: bool = False
+    is_doctor: bool = False
 
     @field_validator("email")
     def validate_email(cls, v: str):
@@ -23,11 +23,11 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=120)
     email: Optional[str] = None
-    password: Optional[str] = Field(None, min_length=6, max_length=255)
-    role: Optional[str] = Field(None, min_length=1, max_length=50)
+    is_chief_doctor: Optional[bool] = None
+    is_doctor: Optional[bool] = None
 
     @field_validator("email")
-    def validate_email(cls, v: str):
+    def validate_email(cls, v: Optional[str]):
         if v is not None and not EMAIL_REGEX.match(v):
             raise ValueError("Invalid email format")
         return v
@@ -38,7 +38,8 @@ class UserOut(BaseModel):
     id: int
     name: str
     email: str
-    role: str
+    is_chief_doctor: bool
+    is_doctor: bool
 
     class Config:
         from_attributes = True

@@ -138,5 +138,5 @@ class EpisodeRepository:
     # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, ep: Episode) -> None:
-        await db.delete(ep)
+        db.delete(ep)
         await db.commit()
