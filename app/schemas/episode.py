@@ -54,7 +54,7 @@ class EpisodeCreate(BaseModel):
     dialisis: Optional[bool] = None
     trombolisis: Optional[bool] = None
     trombolisis_mismo_dia_ingreso: Optional[bool] = None
-    pcr: Optional[bool] = None
+    pcr: Optional[float] = None
     hemoglobina: Optional[float] = None
     creatinina: Optional[float] = None
     nitrogeno_ureico: Optional[float] = None
@@ -112,7 +112,7 @@ class EpisodeUpdate(BaseModel):
     dialisis: Optional[bool] = None
     trombolisis: Optional[bool] = None
     trombolisis_mismo_dia_ingreso: Optional[bool] = None
-    pcr: Optional[bool] = None
+    pcr: Optional[float] = None
     hemoglobina: Optional[float] = None
     creatinina: Optional[float] = None
     nitrogeno_ureico: Optional[float] = None
@@ -139,7 +139,7 @@ class EpisodeOut(BaseModel):
     fecha_ingreso: Optional[date] = None
     fecha_egreso: Optional[date] = None
     estado_del_caso: Optional[str] = None
-    diagnostics: List[DiagnosticLite] = []
+    diagnostics: List[DiagnosticLite] = Field(default_factory=list)
 
     class Config:
         from_attributes = True
