@@ -64,6 +64,7 @@ class UserRepository:
         if search:
             like = f"%{search}%"
             from sqlalchemy import or_
+
             cond = or_(User.name.ilike(like), User.email.ilike(like))
             query = query.where(cond)
             count_q = count_q.where(cond)
@@ -113,5 +114,5 @@ class UserRepository:
     # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, user: User) -> None:
-        db.delete(user)   # ✅ sin await
+        db.delete(user)  # ✅ sin await
         await db.commit()

@@ -10,7 +10,9 @@ from app.databases.postgresql.models import Patient
 class PatientRepository:
     # Create
     @staticmethod
-    async def create(db: AsyncSession, *, name: str, rut: str, age: Optional[int] = None) -> Patient:
+    async def create(
+        db: AsyncSession, *, name: str, rut: str, age: Optional[int] = None
+    ) -> Patient:
         instance = Patient(name=name, rut=rut, age=age, active=True)
         db.add(instance)
         try:
