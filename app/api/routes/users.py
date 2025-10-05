@@ -25,8 +25,10 @@ async def create_user(
             db,
             name=payload.name,
             email=payload.email,
+            rut=payload.rut,
             password=payload.password,
-            role=payload.role,
+            is_chief_doctor=payload.is_chief_doctor,
+            is_doctor=payload.is_doctor,
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Email ya registrado")
