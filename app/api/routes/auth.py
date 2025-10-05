@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from jose import JWTError, jwt
+from jose import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
@@ -55,5 +55,3 @@ async def login(payload: LoginRequest, db: Annotated[AsyncSession, Depends(get_d
         is_chief_doctor=user.is_chief_doctor,
     )
     return Token(access_token=token)
-
-
