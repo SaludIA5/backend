@@ -1,4 +1,5 @@
 from typing import List, Optional, Tuple
+
 from passlib.hash import bcrypt
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError

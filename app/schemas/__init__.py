@@ -1,3 +1,4 @@
+from .auth import LoginRequest, Token
 from .diagnostic import (
     DiagnosticCreate,
     DiagnosticOut,
@@ -20,8 +21,6 @@ from .patient import (
     PatientUpdate,
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
-
-from .auth import LoginRequest, Token
 
 __all__ = [
     "PatientCreate",
