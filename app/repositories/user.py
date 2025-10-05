@@ -16,12 +16,16 @@ class UserRepository:
         *,
         name: str,
         email: str,
+        rut: str,
+        password: str,
         is_chief_doctor: bool = False,
         is_doctor: bool = False,
     ) -> User:
         instance = User(
             name=name,
             email=email,
+            rut=rut,
+            hashed_password=bcrypt.hash(password),
             is_chief_doctor=is_chief_doctor,
             is_doctor=is_doctor,
         )
@@ -61,6 +65,7 @@ class UserRepository:
         if search:
             like = f"%{search}%"
             from sqlalchemy import or_
+
             cond = or_(User.name.ilike(like), User.email.ilike(like))
             query = query.where(cond)
             count_q = count_q.where(cond)
@@ -80,6 +85,7 @@ class UserRepository:
         *,
         name: Optional[str] = None,
         email: Optional[str] = None,
+        rut: Optional[str] = None,
         password: Optional[str] = None,
         is_chief_doctor: Optional[bool] = None,
         is_doctor: Optional[bool] = None,
@@ -88,6 +94,8 @@ class UserRepository:
             user.name = name
         if email is not None:
             user.email = email
+        if rut is not None:
+            user.rut = rut
         if is_chief_doctor is not None:
             user.is_chief_doctor = is_chief_doctor
         if is_doctor is not None:
@@ -107,5 +115,5 @@ class UserRepository:
     # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, user: User) -> None:
-        db.delete(user)   # ✅ sin await
+        db.delete(user)  # ✅ sin await
         await db.commit()

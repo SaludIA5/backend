@@ -1,3 +1,4 @@
+from .auth import LoginRequest, Token
 from .diagnostic import (
     DiagnosticCreate,
     DiagnosticOut,
@@ -42,4 +43,6 @@ __all__ = [
     "UserOut",
     "UserPage",
     "UserPageMeta",
+    "Token",
+    "LoginRequest",
 ]
