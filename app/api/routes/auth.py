@@ -3,15 +3,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import jwt
-from sqlalchemy.ext.asyncio import AsyncSession
+from passlib.hash import bcrypt
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import User
 from app.schemas import LoginRequest, Token
-from passlib.hash import bcrypt
-
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
