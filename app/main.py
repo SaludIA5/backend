@@ -22,7 +22,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[f"{FRONTEND_URL}:{FRONTEND_PORT}"],
+    allow_origins=[
+        f"{FRONTEND_URL}:{FRONTEND_PORT}",
+        "https://saludia5.pages.dev",
+        "https://develop.saludia5.pages.dev",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
