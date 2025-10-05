@@ -21,6 +21,8 @@ from .patient import (
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 
+from .auth import LoginRequest, Token
+
 __all__ = [
     "PatientCreate",
     "PatientUpdate",
@@ -42,4 +44,6 @@ __all__ = [
     "UserOut",
     "UserPage",
     "UserPageMeta",
+    "Token",
+    "LoginRequest",
 ]

@@ -37,12 +37,14 @@ class UserDataFactory(BaseFactory):
     class Meta:
         model = dict
 
+    name = factory.LazyFunction(lambda: fake.name())
     email = factory.LazyFunction(lambda: fake.email())
-    username = factory.LazyFunction(lambda: fake.user_name())
-    first_name = factory.LazyFunction(lambda: fake.first_name())
-    last_name = factory.LazyFunction(lambda: fake.last_name())
+    rut = factory.LazyFunction(
+        lambda: f"{fake.random_int(min=10, max=25)}.{fake.random_int(min=100, max=999)}.{fake.random_int(min=100, max=999)}-{fake.random_element(elements=('1', '2', '3', '4', '5', '6', '7', '8', '9', 'k'))}"
+    )
     password = factory.LazyFunction(lambda: fake.password(length=12))
-    is_active = True
+    is_chief_doctor = False
+    is_doctor = True
 
 
 class PredictionDataFactory(BaseFactory):
