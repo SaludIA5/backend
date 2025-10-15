@@ -42,7 +42,6 @@ class Episode(BaseModel):
     )
 
     numero_episodio = Column(String(50), nullable=False, unique=True, index=True)
-    fecha_ingreso = Column(Date)
     fecha_estabilizacion = Column(Date)
     fecha_alta = Column(Date)
     validacion = Column(String(50))
@@ -56,16 +55,16 @@ class Episode(BaseModel):
     antecedentes_cardiaco = Column(Boolean)
     antecedentes_diabetes = Column(Boolean)
     antecedentes_hipertension = Column(Boolean)
-    triage = Column(String(50))
-    presion_sistolica = Column(Integer)
-    presion_diastolica = Column(Integer)
-    presion_media = Column(Integer)
+    triage = Column(Numeric(5, 2))
+    presion_sistolica = Column(Numeric(5, 2))
+    presion_diastolica = Column(Numeric(5, 2))
+    presion_media = Column(Numeric(5, 2))
     temperatura_c = Column(Numeric(4, 1))
     saturacion_o2 = Column(Numeric(4, 1))
-    frecuencia_cardiaca = Column(Integer)
-    frecuencia_respiratoria = Column(Integer)
+    frecuencia_cardiaca = Column(Numeric(5, 2))
+    frecuencia_respiratoria = Column(Numeric(5, 2))
     tipo_cama = Column(String(50))
-    glasgow_score = Column(Integer)
+    glasgow_score = Column(Numeric(5, 2))
     fio2 = Column(Numeric(4, 1))
     fio2_ge_50 = Column(Boolean)  # FiO₂ ≥ 50%
     ventilacion_mecanica = Column(Boolean)
@@ -84,7 +83,7 @@ class Episode(BaseModel):
     nitrogeno_ureico = Column(Numeric(5, 2))
     sodio = Column(Numeric(5, 2))
     potasio = Column(Numeric(4, 2))
-    dreo = Column(String(50))
+    dreo = Column(Boolean)
     troponinas_alteradas = Column(Boolean)
     ecg_alterado = Column(Boolean)
     rnm_protocolo_stroke = Column(Boolean)
@@ -92,6 +91,7 @@ class Episode(BaseModel):
     transfusiones = Column(Boolean)
     compromiso_conciencia = Column(Boolean)
     estado_del_caso = Column(String(50))
+    recomendacion_modelo = Column(String(50))
 
     # Relación muchos-a-muchos
     diagnostics = relationship(

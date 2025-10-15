@@ -19,7 +19,6 @@ class EpisodeCreate(BaseModel):
     patient_id: int
     numero_episodio: str = Field(..., min_length=1, max_length=50)
     # campos opcionales (agrega los que uses con más frecuencia)
-    fecha_ingreso: Optional[date] = None
     fecha_estabilizacion: Optional[date] = None
     fecha_alta: Optional[date] = None
     validacion: Optional[str] = None
@@ -32,16 +31,16 @@ class EpisodeCreate(BaseModel):
     antecedentes_cardiaco: Optional[bool] = None
     antecedentes_diabetes: Optional[bool] = None
     antecedentes_hipertension: Optional[bool] = None
-    triage: Optional[str] = None
-    presion_sistolica: Optional[int] = None
-    presion_diastolica: Optional[int] = None
-    presion_media: Optional[int] = None
+    triage: Optional[float] = None
+    presion_sistolica: Optional[float] = None
+    presion_diastolica: Optional[float] = None
+    presion_media: Optional[float] = None
     temperatura_c: Optional[float] = None
     saturacion_o2: Optional[float] = None
-    frecuencia_cardiaca: Optional[int] = None
-    frecuencia_respiratoria: Optional[int] = None
+    frecuencia_cardiaca: Optional[float] = None
+    frecuencia_respiratoria: Optional[float] = None
     tipo_cama: Optional[str] = None
-    glasgow_score: Optional[int] = None
+    glasgow_score: Optional[float] = None
     fio2: Optional[float] = None
     fio2_ge_50: Optional[bool] = None
     ventilacion_mecanica: Optional[bool] = None
@@ -60,7 +59,7 @@ class EpisodeCreate(BaseModel):
     nitrogeno_ureico: Optional[float] = None
     sodio: Optional[float] = None
     potasio: Optional[float] = None
-    dreo: Optional[str] = None
+    dreo: Optional[bool] = None
     troponinas_alteradas: Optional[bool] = None
     ecg_alterado: Optional[bool] = None
     rnm_protocolo_stroke: Optional[bool] = None
@@ -68,6 +67,7 @@ class EpisodeCreate(BaseModel):
     transfusiones: Optional[bool] = None
     compromiso_conciencia: Optional[bool] = None
     estado_del_caso: Optional[str] = None
+    recomendacion_modelo: Optional[str] = None
 
     # IDs de diagnósticos para asociar (muchos-a-muchos)
     diagnostics_ids: Optional[List[int]] = None
@@ -77,7 +77,6 @@ class EpisodeUpdate(BaseModel):
     # todos opcionales: update parcial (PATCH)
     patient_id: Optional[int] = None
     numero_episodio: Optional[str] = Field(None, min_length=1, max_length=50)
-    fecha_ingreso: Optional[date] = None
     fecha_estabilizacion: Optional[date] = None
     fecha_alta: Optional[date] = None
     validacion: Optional[str] = None
@@ -90,16 +89,16 @@ class EpisodeUpdate(BaseModel):
     antecedentes_cardiaco: Optional[bool] = None
     antecedentes_diabetes: Optional[bool] = None
     antecedentes_hipertension: Optional[bool] = None
-    triage: Optional[str] = None
-    presion_sistolica: Optional[int] = None
-    presion_diastolica: Optional[int] = None
-    presion_media: Optional[int] = None
+    triage: Optional[float] = None
+    presion_sistolica: Optional[float] = None
+    presion_diastolica: Optional[float] = None
+    presion_media: Optional[float] = None
     temperatura_c: Optional[float] = None
     saturacion_o2: Optional[float] = None
-    frecuencia_cardiaca: Optional[int] = None
-    frecuencia_respiratoria: Optional[int] = None
+    frecuencia_cardiaca: Optional[float] = None
+    frecuencia_respiratoria: Optional[float] = None
     tipo_cama: Optional[str] = None
-    glasgow_score: Optional[int] = None
+    glasgow_score: Optional[float] = None
     fio2: Optional[float] = None
     fio2_ge_50: Optional[bool] = None
     ventilacion_mecanica: Optional[bool] = None
@@ -118,7 +117,7 @@ class EpisodeUpdate(BaseModel):
     nitrogeno_ureico: Optional[float] = None
     sodio: Optional[float] = None
     potasio: Optional[float] = None
-    dreo: Optional[str] = None
+    dreo: Optional[bool] = None
     troponinas_alteradas: Optional[bool] = None
     ecg_alterado: Optional[bool] = None
     rnm_protocolo_stroke: Optional[bool] = None
@@ -126,6 +125,7 @@ class EpisodeUpdate(BaseModel):
     transfusiones: Optional[bool] = None
     compromiso_conciencia: Optional[bool] = None
     estado_del_caso: Optional[str] = None
+    recomendacion_modelo: Optional[str] = None
 
     diagnostics_ids: Optional[List[int]] = None
 
