@@ -8,7 +8,7 @@ Create Date: 2025-10-15 01:25:35.143462
 
 import sqlalchemy as sa
 from alembic import op
-from sqlalchemy import Boolean, Date, Integer, Numeric, String
+from sqlalchemy import Boolean, Integer, Numeric, String
 
 # revision identifiers, used by Alembic.
 revision = "ed14b6831ae5"
