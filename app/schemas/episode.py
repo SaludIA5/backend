@@ -1,8 +1,10 @@
 from datetime import date
-from typing import List, Optional, Any
-from decimal import Decimal 
-from pydantic import BaseModel, Field, BeforeValidator
+from decimal import Decimal
+from typing import Any, List, Optional
+
+from pydantic import BaseModel, BeforeValidator, Field
 from typing_extensions import Annotated
+
 
 def validate_numeric(value: Any) -> Optional[Decimal]:
     """Convierte un valor (incluyendo el objeto Numeric de SQLAlchemy) a Decimal o None."""
@@ -11,8 +13,11 @@ def validate_numeric(value: Any) -> Optional[Decimal]:
     try:
         return Decimal(str(value))
     except Exception:
-        return None 
+        return None
+
+
 PydanticDecimal = Annotated[Optional[Decimal], BeforeValidator(validate_numeric)]
+
 
 class DiagnosticLite(BaseModel):
     id: int
