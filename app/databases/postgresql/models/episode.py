@@ -66,7 +66,7 @@ class Episode(BaseModel):
     tipo_cama = Column(String(50))
     glasgow_score = Column(Numeric(5, 2))
     fio2 = Column(Numeric(4, 1))
-    fio2_ge_50 = Column(Boolean)  # FiO₂ ≥ 50%
+    fio2_ge_50 = Column(Boolean)
     ventilacion_mecanica = Column(Boolean)
     cirugia_realizada = Column(Boolean)
     cirugia_mismo_dia_ingreso = Column(Boolean)
