@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, String
 
 from .base import BaseModel
-
+from sqlalchemy.orm import relationship
 
 class User(BaseModel):
     __tablename__ = "users"
@@ -12,3 +12,12 @@ class User(BaseModel):
     hashed_password = Column(String(255), nullable=False)
     is_chief_doctor = Column(Boolean, default=False)
     is_doctor = Column(Boolean, default=False)
+    is_admin = Column(Boolean, default=False)
+    turn = Column(String(50), nullable=True)
+
+    episodes_validations = relationship(
+        "UserEpisodeValidation",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
