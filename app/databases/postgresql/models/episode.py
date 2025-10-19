@@ -10,6 +10,7 @@ from sqlalchemy import (
     Table,
 )
 from sqlalchemy.orm import relationship
+
 from .base import BaseModel
 
 episode_diagnostic = Table(
@@ -103,5 +104,5 @@ class Episode(BaseModel):
         "app.databases.postgresql.models.user_episodes_validations.UserEpisodeValidation",
         back_populates="episode",
         uselist=False,  # 1:1 relación hacia la validación
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )

@@ -1,7 +1,8 @@
 from sqlalchemy import Boolean, Column, String
+from sqlalchemy.orm import relationship
 
 from .base import BaseModel
-from sqlalchemy.orm import relationship
+
 
 class User(BaseModel):
     __tablename__ = "users"
@@ -16,8 +17,5 @@ class User(BaseModel):
     turn = Column(String(50), nullable=True)
 
     episodes_validations = relationship(
-        "UserEpisodeValidation",
-        back_populates="user",
-        cascade="all, delete-orphan"
+        "UserEpisodeValidation", back_populates="user", cascade="all, delete-orphan"
     )
-

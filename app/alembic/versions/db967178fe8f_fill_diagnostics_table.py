@@ -5,21 +5,23 @@ Revises: 32e0a7b83af2
 Create Date: 2025-10-18 19:16:09.297629
 
 """
+
+from pathlib import Path
 from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
 import pandas as pd
-from pathlib import Path
+import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.orm import Session
 
 # revision identifiers, used by Alembic.
-revision: str = 'db967178fe8f'
-down_revision: Union[str, Sequence[str], None] = '32e0a7b83af2'
+revision: str = "db967178fe8f"
+down_revision: Union[str, Sequence[str], None] = "32e0a7b83af2"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
+
 
 def upgrade() -> None:
     """Upgrade schema."""
@@ -29,17 +31,17 @@ def upgrade() -> None:
         BASE_PATH / "databases" / "postgresql" / "seeds" / "data" / "diagnostics.csv"
     )
 
-    df = pd.read_csv(CSV_PATH_DIAGNOSTICS, sep=';')
+    df = pd.read_csv(CSV_PATH_DIAGNOSTICS, sep=";")
 
-    if not {'codigo', 'descripcion'}.issubset(df.columns):
+    if not {"codigo", "descripcion"}.issubset(df.columns):
         raise ValueError("El CSV debe tener las columnas 'codigo' y 'descripcion'.")
 
     df = df.rename(columns={"codigo": "cie_code", "descripcion": "description"})
-    data_to_insert = df[['cie_code', 'description']].to_dict(orient='records')
+    data_to_insert = df[["cie_code", "description"]].to_dict(orient="records")
     diagnostics_table = sa.table(
-        'diagnostics',
-        sa.column('cie_code', sa.String),
-        sa.column('description', sa.String)
+        "diagnostics",
+        sa.column("cie_code", sa.String),
+        sa.column("description", sa.String),
     )
 
     op.bulk_insert(diagnostics_table, data_to_insert)
@@ -54,12 +56,12 @@ def downgrade() -> None:
         BASE_PATH / "databases" / "postgresql" / "seeds" / "data" / "diagnostics.csv"
     )
 
-    df = pd.read_csv(CSV_PATH_DIAGNOSTICS, sep=';')
+    df = pd.read_csv(CSV_PATH_DIAGNOSTICS, sep=";")
 
-    if 'codigo' not in df.columns:
+    if "codigo" not in df.columns:
         raise ValueError("El CSV debe tener la columna 'codigo' para el downgrade.")
 
-    cie_codes = df['codigo'].dropna().tolist()
+    cie_codes = df["codigo"].dropna().tolist()
 
     if not cie_codes:
         return

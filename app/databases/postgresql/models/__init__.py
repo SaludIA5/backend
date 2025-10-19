@@ -6,4 +6,11 @@ from .patient import Patient
 from .user import User
 from .user_episodes_validations import UserEpisodeValidation
 
-__all__ = ["BaseModel", "User", "Patient", "Episode", "Diagnostic", "UserEpisodeValidation"]
+__all__ = [
+    "BaseModel",
+    "User",
+    "Patient",
+    "Episode",
+    "Diagnostic",
+    "UserEpisodeValidation",
+]
