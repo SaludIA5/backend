@@ -20,10 +20,12 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade():
+
     op.add_column("episodes", sa.Column("fecha_ingreso", sa.Date(), nullable=True))
     op.add_column("episodes", sa.Column("pcr", sa.Numeric(6, 2), nullable=True))
 
 
 def downgrade():
+
     op.drop_column("episodes", "pcr")
     op.drop_column("episodes", "fecha_ingreso")
