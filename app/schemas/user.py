@@ -14,6 +14,8 @@ class UserCreate(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     is_chief_doctor: bool = False
     is_doctor: bool = False
+    is_admin: Optional[bool] = None
+    turn: Optional[str] = None
 
     @field_validator("email")
     def validate_email(cls, v: str):
@@ -34,6 +36,8 @@ class UserUpdate(BaseModel):
     rut: Optional[str] = Field(None, min_length=3, max_length=20)
     is_chief_doctor: Optional[bool] = None
     is_doctor: Optional[bool] = None
+    is_admin: Optional[bool] = None
+    turn: Optional[str] = None
 
     @field_validator("email")
     def validate_email(cls, v: Optional[str]):
@@ -56,6 +60,8 @@ class UserOut(BaseModel):
     rut: str
     is_chief_doctor: bool
     is_doctor: bool
+    is_admin: Optional[bool] = None
+    turn: Optional[str] = None
 
     class Config:
         from_attributes = True
