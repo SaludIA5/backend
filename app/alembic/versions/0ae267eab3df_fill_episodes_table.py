@@ -158,6 +158,7 @@ def upgrade():
 
     df = df[orden_columnas]
     df["numero_episodio"] = df["numero_episodio"].astype(str)
+    df["recomendacion_modelo"] = df["validacion"]
 
     DATE_COLS = ["fecha_estabilizacion", "fecha_alta", "fecha_ingreso", "fecha_egreso"]
     for col in DATE_COLS:
