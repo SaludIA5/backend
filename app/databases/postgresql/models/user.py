@@ -19,3 +19,7 @@ class User(BaseModel):
     episodes_validations = relationship(
         "UserEpisodeValidation", back_populates="user", cascade="all, delete-orphan"
     )
+
+    assigned_episodes = relationship(
+        "Episode", secondary="episode_user", back_populates="team_users"
+    )

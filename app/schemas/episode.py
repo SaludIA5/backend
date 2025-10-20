@@ -83,6 +83,7 @@ class EpisodeCreate(BaseModel):
     compromiso_conciencia: Optional[bool] = None
     estado_del_caso: Optional[str] = None
     recomendacion_modelo: Optional[str] = None
+    validacion_jefe_turno: Optional[str] = None
 
     # IDs de diagnósticos para asociar (muchos-a-muchos)
     diagnostics_ids: Optional[List[int]] = None
@@ -142,6 +143,7 @@ class EpisodeUpdate(BaseModel):
     compromiso_conciencia: Optional[bool] = None
     estado_del_caso: Optional[str] = None
     recomendacion_modelo: Optional[str] = None
+    validacion_jefe_turno: Optional[str] = None
 
     diagnostics_ids: Optional[List[int]] = None
 
@@ -211,6 +213,7 @@ class EpisodeOut(BaseModel):
     compromiso_conciencia: Optional[bool] = None
     estado_del_caso: Optional[str] = None
     recomendacion_modelo: Optional[str] = None
+    validacion_jefe_turno: Optional[str] = None
 
     # IDs de diagnósticos para asociar (muchos-a-muchos)
     diagnostics_ids: Optional[List[int]] = None
