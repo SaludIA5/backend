@@ -92,6 +92,7 @@ class Episode(BaseModel):
     compromiso_conciencia = Column(Boolean)
     estado_del_caso = Column(String(50))
     recomendacion_modelo = Column(String(50))
+    validacion_jefe_turno = Column(String(50))
 
     # Relación muchos-a-muchos
     diagnostics = relationship(
@@ -105,4 +106,8 @@ class Episode(BaseModel):
         back_populates="episode",
         uselist=False,  # 1:1 relación hacia la validación
         cascade="all, delete-orphan",
+    )
+
+    team_users = relationship(
+        "User", secondary="episode_user", back_populates="assigned_episodes"
     )
