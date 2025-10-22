@@ -25,7 +25,7 @@ episode_diagnostic = Table(
     Column(
         "diagnostic_id",
         Integer,
-        ForeignKey("diagnostics.id", ondelete="RESTRICT"),
+        ForeignKey("diagnostics.id", ondelete="CASCADE"),
         primary_key=True,
     ),
 )
@@ -96,7 +96,10 @@ class Episode(BaseModel):
 
     # Relación muchos-a-muchos
     diagnostics = relationship(
-        "Diagnostic", secondary=episode_diagnostic, backref="episodes"
+        "Diagnostic",
+        secondary=episode_diagnostic,
+        backref="episodes",
+        cascade="all, delete",
     )
 
     patient = relationship("Patient", back_populates="episodes")
@@ -106,6 +109,7 @@ class Episode(BaseModel):
         back_populates="episode",
         uselist=False,  # 1:1 relación hacia la validación
         cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     team_users = relationship(
