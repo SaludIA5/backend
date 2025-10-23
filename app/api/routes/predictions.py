@@ -40,7 +40,7 @@ async def predict_episode_pertinence(
     """
     try:
         # Extract episode data (excluding model_type)
-        episode_data = payload.model_dump(exclude={"model_type"})
+        episode_data = payload.model_dump(exclude={"model_type", "id_episodio"})
         # print(episode_data)
         # Make prediction
         result = PredictionService.predict_episode_pertinence(
@@ -48,13 +48,11 @@ async def predict_episode_pertinence(
         )
 
         # Se agrega a la columna "recomendacion modelo del respectivo episodio"
-        numero = payload.numero_episodio
-        if numero:
+        episode_id = payload.id_episodio
+        if episode_id:
             try:
                 # Buscar el episodio por numero_episodio
-                res = await db.execute(
-                    select(Episode).where(Episode.numero_episodio == numero)
-                )
+                res = await db.execute(select(Episode).where(Episode.id == episode_id))
                 ep = res.scalar_one_or_none()
 
                 if ep:
@@ -66,12 +64,12 @@ async def predict_episode_pertinence(
                     )
                     await db.commit()
                     result["update_episode"] = (
-                        f"Model recommendation added to the episode '{numero}'"
+                        f"Model recommendation added to the episode of id {episode_id}"
                     )
                 else:
                     # Si no existe, no falla
                     result["update_episode"] = (
-                        f"Episode with numero_episodio '{numero}' not found"
+                        f"Episode with id_episodio '{episode_id}' not found"
                     )
 
             except SQLAlchemyError as e:
@@ -89,7 +87,7 @@ async def predict_episode_pertinence(
                 return result
 
         else:
-            result["update_episode"] = "Column 'numero_episodio' was not in payload"
+            result["update_episode"] = f"Episode with id {episode_id} was not found"
             print(result)
             return result
 
