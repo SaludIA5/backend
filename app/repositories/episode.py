@@ -3,9 +3,10 @@ from typing import List, Optional, Tuple
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 
 from app.databases.postgresql.models import Diagnostic, Episode
+from app.databases.postgresql.models import User, UserEpisodeValidation, episode_user
 
 
 class EpisodeRepository:
@@ -140,3 +141,114 @@ class EpisodeRepository:
     async def hard_delete(db: AsyncSession, ep: Episode) -> None:
         db.delete(ep)
         await db.commit()
+    
+    @staticmethod
+    async def list_by_doctor_validations(db, doctor_id: int):
+        stmt = (
+            select(Episode)
+            .join(UserEpisodeValidation, UserEpisodeValidation.episode_id == Episode.id)
+            .where(UserEpisodeValidation.user_id == doctor_id)
+            .options(
+                selectinload(Episode.diagnostics),
+                joinedload(Episode.validated_by).joinedload(UserEpisodeValidation.user),
+            )
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()
+
+    @staticmethod
+    async def list_by_turn_validations(db, turn: str):
+        stmt = (
+            select(Episode)
+            .join(UserEpisodeValidation, UserEpisodeValidation.episode_id == Episode.id)
+            .join(User, User.id == UserEpisodeValidation.user_id)
+            .where(User.is_doctor.is_(True), User.turn == turn)
+            .options(
+                selectinload(Episode.diagnostics),
+                joinedload(Episode.validated_by).joinedload(UserEpisodeValidation.user),
+            )
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()
+
+    @staticmethod
+    async def list_all_with_validators(db):
+        stmt = (
+            select(Episode)
+            .options(
+                selectinload(Episode.diagnostics),
+                joinedload(Episode.validated_by).joinedload(UserEpisodeValidation.user),
+            )
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()
+    
+    @staticmethod
+    async def list_by_user_team(db, user_id: int):
+        """
+        Episodios donde 'user_id' está asignado vía episode_user.
+        """
+        stmt = (
+            select(Episode)
+            .join(episode_user, episode_user.c.episode_id == Episode.id)
+            .where(episode_user.c.user_id == user_id)
+            .options(
+                selectinload(Episode.diagnostics),
+                selectinload(Episode.team_users),  # carga todo el equipo
+            )
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()
+
+    @staticmethod
+    async def list_by_turn_team(db, turn: str):
+        """
+        Episodios donde hay al menos un User asignado (episode_user) con is_doctor=True y turn=turn.
+        """
+        stmt = (
+            select(Episode)
+            .join(episode_user, episode_user.c.episode_id == Episode.id)
+            .join(User, User.id == episode_user.c.user_id)
+            .where(User.is_doctor.is_(True), User.turn == turn)
+            .options(
+                selectinload(Episode.diagnostics),
+                selectinload(Episode.team_users),  # carga todo el equipo
+            )
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()
+
+    @staticmethod
+    async def list_all_with_team(db):
+        """
+        Todos los episodios con su equipo (team_users) cargado.
+        """
+        stmt = (
+            select(Episode)
+            .options(
+                selectinload(Episode.diagnostics),
+                selectinload(Episode.team_users),
+            )
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()
+    
+    @staticmethod
+    async def list_by_patient_id(db, patient_id: int):
+        """
+        Todos los episodios de un paciente, con diagnostics cargados.
+        """
+        stmt = (
+            select(Episode)
+            .where(Episode.patient_id == patient_id)
+            .options(selectinload(Episode.diagnostics))
+            .order_by(Episode.id.desc())
+        )
+        res = await db.execute(stmt)
+        return res.scalars().all()

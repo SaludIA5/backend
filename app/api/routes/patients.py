@@ -1,17 +1,20 @@
-from typing import Annotated
+from typing import Annotated, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services.auth_service import get_current_user
+
 from app.databases.postgresql.db import get_db
-from app.repositories import PatientRepository
+from app.repositories import PatientRepository, EpisodeRepository
 from app.schemas import (
     PatientCreate,
     PatientOut,
     PatientPage,
     PatientPageMeta,
     PatientUpdate,
+    EpisodeOut
 )
 
 router = APIRouter(prefix="/patients", tags=["patients"])
@@ -92,3 +95,17 @@ async def delete_patient(patient_id: int, db: Annotated[AsyncSession, Depends(ge
         raise HTTPException(status_code=404, detail="Patient not found")
     await PatientRepository.hard_delete(db, patient)
     return None
+
+@router.get("/{patient_id}/episodes", response_model=List[EpisodeOut], status_code=status.HTTP_200_OK)
+async def list_patient_episodes(
+    patient_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _current_user = Depends(get_current_user),  # <-- quita esta línea si no quieres auth
+):
+    # validar que el paciente exista (404 coherente)
+    patient = await PatientRepository.get_by_id(db, patient_id)
+    if not patient:
+        raise HTTPException(status_code=404, detail="Patient not found")
+
+    episodes = await EpisodeRepository.list_by_patient_id(db, patient_id)
+    return episodes
