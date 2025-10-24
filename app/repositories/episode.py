@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
@@ -242,13 +242,62 @@ class EpisodeRepository:
     @staticmethod
     async def list_by_patient_id(db, patient_id: int):
         """
-        Todos los episodios de un paciente, con diagnostics cargados.
+        Todos los episodios de un paciente, con diagnostics, equipo y validador cargados.
         """
         stmt = (
             select(Episode)
             .where(Episode.patient_id == patient_id)
-            .options(selectinload(Episode.diagnostics))
+            .options(
+                selectinload(Episode.diagnostics),
+                selectinload(Episode.team_users),  # doctores asignados (episode_user)
+                joinedload(Episode.validated_by).joinedload(UserEpisodeValidation.user),  # validador (user)
+            )
             .order_by(Episode.id.desc())
         )
         res = await db.execute(stmt)
         return res.scalars().all()
+    
+    @staticmethod
+    async def create_with_team(
+        db: AsyncSession,
+        *,
+        data: dict,
+        diagnostics_ids: Optional[List[int]] = None,
+        doctors_by_turn: Optional[Dict[str, int]] = None,
+    ) -> Episode:
+        """
+        Crea un episodio y asigna doctores (user_ids) recibidos por turno en episode_user.
+        No valida que el user.turn coincida con la clave del dict; sólo que el user exista.
+        """
+        async with db.begin():
+            ep = Episode(**data)
+
+            # Asocia diagnósticos si vienen
+            if diagnostics_ids:
+                diags = (
+                    (await db.execute(select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))))
+                    .scalars()
+                    .all()
+                )
+                ep.diagnostics = diags
+
+            db.add(ep)
+            await db.flush()  # para tener ep.id
+
+            # Asigna doctores si vienen
+            if doctors_by_turn:
+                # quedarnos con valores (user_ids) válidos y únicos
+                user_ids = sorted({uid for uid in doctors_by_turn.values() if uid})
+                if user_ids:
+                    existing_ids = (
+                        (await db.execute(select(User.id).where(User.id.in_(user_ids))))
+                        .scalars()
+                        .all()
+                    )
+                    if existing_ids:
+                        values = [{"episode_id": ep.id, "user_id": uid} for uid in existing_ids]
+                        await db.execute(insert(episode_user), values)
+
+        # refrescamos relaciones útiles para la respuesta
+        await db.refresh(ep, attribute_names=["diagnostics", "team_users"])
+        return ep

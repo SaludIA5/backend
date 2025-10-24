@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict
 
 from pydantic import BaseModel, BeforeValidator, Field
 from typing_extensions import Annotated
@@ -88,6 +88,11 @@ class EpisodeCreate(BaseModel):
     # IDs de diagnósticos para asociar (muchos-a-muchos)
     diagnostics_ids: Optional[List[int]] = None
 
+    doctors_by_turn: Dict[str, int] = Field(
+        default_factory=dict,
+        alias="doctors",
+        description="Mapa de turnos (turnoa, turnob, turnoc) a IDs de doctores.",
+    )
 
 class EpisodeUpdate(BaseModel):
     # todos opcionales: update parcial (PATCH)

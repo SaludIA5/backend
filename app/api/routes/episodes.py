@@ -34,10 +34,15 @@ async def create_episode(
     _: Annotated[User, Depends(require_medical_role)],
 ):
     try:
-        ep = await EpisodeRepository.create(
+        ep = await EpisodeRepository.create_with_team(
             db,
-            data=payload.model_dump(exclude={"diagnostics_ids"}, exclude_unset=True),
+            data=payload.model_dump(
+                exclude={"diagnostics_ids", "doctors_by_turn"},
+                exclude_unset=True,
+                by_alias=True,  # permite que la request mande "doctors"
+            ),
             diagnostics_ids=payload.diagnostics_ids,
+            doctors_by_turn=payload.doctors_by_turn,  # viene de "doctors" (alias)
         )
         return ep
     except IntegrityError:
@@ -143,7 +148,7 @@ async def list_assigned_episodes(
     for ep in episodes:
         item = EpisodeWithTeam.model_validate(ep)
         team_users = getattr(ep, "team_users", []) or []
-        object.__setattr__(item, "team", [UserOut.model_validate(u) for u in team_users])
+        object.__setattr__(item, "assigned_doctors", [UserOut.model_validate(u) for u in team_users])
         out.append(item)
 
     return out
@@ -173,9 +178,9 @@ async def list_validated_episodes(
 
     result: list[EpisodeWithDoctor] = []
     for ep in episodes:
-        doctor = ep.validated_by.user if getattr(ep, "validated_by", None) else None
         item = EpisodeWithDoctor.model_validate(ep)
-        object.__setattr__(item, "doctor", UserOut.model_validate(doctor) if doctor else None)
+        validator = getattr(ep, "validated_by", []) or []
+        object.__setattr__(item, "validator_doctors", [UserOut.model_validate(u) for u in validator])
         result.append(item)
 
     return result
