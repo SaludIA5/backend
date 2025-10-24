@@ -22,6 +22,8 @@ from .patient import (
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 
+from .validation import ValidateEpisodeRequest
+
 __all__ = [
     "PatientCreate",
     "PatientUpdate",
@@ -45,4 +47,5 @@ __all__ = [
     "UserPageMeta",
     "Token",
     "LoginRequest",
+    "ValidateEpisodeRequest",
 ]

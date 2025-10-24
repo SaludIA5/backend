@@ -8,4 +8,5 @@ __all__ = [
     "DiagnosticRepository",
     "EpisodeRepository",
     "UserRepository",
+    "UserEpisodeValidationRepository",
 ]

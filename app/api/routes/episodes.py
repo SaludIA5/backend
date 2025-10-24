@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
 from app.repositories.episode import EpisodeRepository
+from app.repositories.user import UserRepository
+from app.repositories.user_episode_validation import UserEpisodeValidationRepository
 from app.schemas.episode import (
     EpisodeCreate,
     EpisodeOut,
@@ -13,6 +15,7 @@ from app.schemas.episode import (
     EpisodePageMeta,
     EpisodeUpdate,
 )
+from app.schemas.validation import ValidateEpisodeRequest
 
 router = APIRouter(prefix="/episodes", tags=["episodes"])
 
@@ -135,3 +138,100 @@ async def delete_episode(episode_id: int, db: Annotated[AsyncSession, Depends(ge
         raise HTTPException(status_code=404, detail="Episode not found")
     await EpisodeRepository.hard_delete(db, ep)
     return None
+
+# VALIDAR (solo doctores, jefes de turno y admin)
+@router.post("/{episode_id}/validate", response_model=EpisodeOut, status_code=status.HTTP_200_OK)
+async def validate_episode(
+    episode_id: int,
+    payload: ValidateEpisodeRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    ep = await EpisodeRepository.get_by_id(db, episode_id)
+    if not ep:
+        raise HTTPException(status_code=404, detail="Episode not found")
+
+    doctor = await UserRepository.get_by_id(db, payload.user_id)
+    if not doctor:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not (getattr(doctor, "is_admin", False) or getattr(doctor, "is_chief_doctor", False) or getattr(doctor, "is_doctor", False)):
+        raise HTTPException(status_code=403, detail="User role not allowed to validate episodes")
+
+    existing = await UserEpisodeValidationRepository.get_by_episode_id(db, episode_id)
+    if existing:
+        raise HTTPException(status_code=409, detail="Episode already validated")
+
+    try:
+        ep = await EpisodeRepository.update_partial(
+            db,
+            ep,
+            data={"validacion": payload.decision},
+            diagnostics_ids=None,
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Conflict updating episode")
+
+    try:
+        await UserEpisodeValidationRepository.create(
+            db, user_id=payload.user_id, episode_id=episode_id
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Episode already validated")
+
+    ep = await EpisodeRepository.get_by_id(db, episode_id)
+    return ep
+
+# VALIDAR FINAL (solo jefe de turno del doctor que validó inicialmente, tienen mismo turno)
+@router.post(
+    "/{episode_id}/chief-validate",
+    response_model=EpisodeOut,
+    status_code=status.HTTP_200_OK,
+)
+async def chief_validate_episode(
+    episode_id: int,
+    payload: ValidateEpisodeRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    ep = await EpisodeRepository.get_by_id(db, episode_id)
+    if not ep:
+        raise HTTPException(status_code=404, detail="Episode not found")
+
+    chief = await UserRepository.get_by_id(db, payload.user_id)
+    if not chief:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not getattr(chief, "is_chief_doctor", False):
+        raise HTTPException(status_code=403, detail="User is not a chief doctor")
+
+    prev_validation = await UserEpisodeValidationRepository.get_with_user_by_episode_id(
+        db, episode_id
+    )
+    if not prev_validation or not prev_validation.user:
+        raise HTTPException(
+            status_code=409, detail="Episode is not validated by a doctor yet"
+        )
+
+    doctor = prev_validation.user
+
+    if not chief.turn or not getattr(doctor, "turn", None):
+        raise HTTPException(
+            status_code=400,
+            detail="Chief or validating doctor has no 'turn' set",
+        )
+    if chief.turn != doctor.turn:
+        raise HTTPException(
+            status_code=403,
+            detail="Chief doctor and validating doctor are not in the same turn",
+        )
+
+    try:
+        ep = await EpisodeRepository.update_partial(
+            db,
+            ep,
+            data={"validacion_jefe_turno": payload.decision},
+            diagnostics_ids=None,
+        )
+    except IntegrityError:
+        raise HTTPException(status_code=409, detail="Conflict updating episode")
+
+    ep = await EpisodeRepository.get_by_id(db, episode_id)
+    return ep
