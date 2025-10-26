@@ -1,7 +1,8 @@
 from typing import List, Optional, Tuple
 
 from passlib.hash import bcrypt
-from sqlalchemy import func, select
+from sqlalchemy import func, select, or_
+from collections import defaultdict
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +21,7 @@ class UserRepository:
         password: str,
         is_chief_doctor: bool = False,
         is_doctor: bool = False,
+        turn: Optional[str] = None,
     ) -> User:
         instance = User(
             name=name,
@@ -28,6 +30,7 @@ class UserRepository:
             hashed_password=bcrypt.hash(password),
             is_chief_doctor=is_chief_doctor,
             is_doctor=is_doctor,
+            turn=turn,
         )
         db.add(instance)
         try:
@@ -66,7 +69,12 @@ class UserRepository:
             like = f"%{search}%"
             from sqlalchemy import or_
 
-            cond = or_(User.name.ilike(like), User.email.ilike(like))
+            cond = or_(
+                User.name.ilike(like),
+                User.email.ilike(like),
+                User.rut.ilike(like),
+                User.turn.ilike(like),
+            )
             query = query.where(cond)
             count_q = count_q.where(cond)
 
@@ -89,6 +97,7 @@ class UserRepository:
         password: Optional[str] = None,
         is_chief_doctor: Optional[bool] = None,
         is_doctor: Optional[bool] = None,
+        turn: Optional[str] = None,
     ) -> User:
         if name is not None:
             user.name = name
@@ -100,6 +109,8 @@ class UserRepository:
             user.is_chief_doctor = is_chief_doctor
         if is_doctor is not None:
             user.is_doctor = is_doctor
+        if turn is not None:
+            user.turn = turn
         if password is not None:
             user.hashed_password = bcrypt.hash(password)
 
@@ -107,7 +118,6 @@ class UserRepository:
             await db.commit()
         except IntegrityError as e:
             await db.rollback()
-            # p.ej., email único
             raise e
         await db.refresh(user)
         return user
@@ -115,5 +125,25 @@ class UserRepository:
     # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, user: User) -> None:
-        db.delete(user)  # ✅ sin await
+        db.delete(user)
         await db.commit()
+    
+    @staticmethod
+    async def group_doctors_and_chiefs_by_turn(db: AsyncSession) -> dict[str, list[User]]:
+        """
+        Devuelve doctores y jefes agrupados por turno.
+        Incluye usuarios con is_doctor=True OR is_chief_doctor=True.
+        """
+        stmt = (
+            select(User)
+            .where(or_(User.is_doctor.is_(True), User.is_chief_doctor.is_(True)))
+            .order_by(User.turn, User.is_chief_doctor.desc(), User.name)
+        )
+        res = await db.execute(stmt)
+        people = res.scalars().all()
+
+        grouped = defaultdict(list)
+        for u in people:
+            grouped[u.turn or "Sin turno"].append(u)
+        return dict(grouped)
+
