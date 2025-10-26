@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, List, Optional, Dict
 
-from pydantic import BaseModel, BeforeValidator
+from pydantic import BaseModel, BeforeValidator, Field
 from typing_extensions import Annotated
 
 

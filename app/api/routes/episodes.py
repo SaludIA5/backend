@@ -162,23 +162,37 @@ async def delete_episode(
     await EpisodeRepository.hard_delete(db, ep)
     return None
 
-# VALIDAR (solo doctores, jefes de turno y admin)
+# VALIDAR (solo doctores, jefes de turno y admin), requiere login
 @router.post("/{episode_id}/validate", response_model=EpisodeOut, status_code=status.HTTP_200_OK)
 async def validate_episode(
     episode_id: int,
     payload: ValidateEpisodeRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     ep = await EpisodeRepository.get_by_id(db, episode_id)
     if not ep:
         raise HTTPException(status_code=404, detail="Episode not found")
 
+    if not (
+        getattr(current_user, "is_admin", False)
+        or getattr(current_user, "is_chief_doctor", False)
+        or getattr(current_user, "is_doctor", False)
+    ):
+        raise HTTPException(status_code=403, detail="User role not allowed to validate episodes")
+
+    if not getattr(current_user, "is_admin", False) and payload.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Cannot validate on behalf of another user")
+
     doctor = await UserRepository.get_by_id(db, payload.user_id)
     if not doctor:
         raise HTTPException(status_code=404, detail="User not found")
-
-    if not (getattr(doctor, "is_admin", False) or getattr(doctor, "is_chief_doctor", False) or getattr(doctor, "is_doctor", False)):
-        raise HTTPException(status_code=403, detail="User role not allowed to validate episodes")
+    if not (
+        getattr(doctor, "is_admin", False)
+        or getattr(doctor, "is_chief_doctor", False)
+        or getattr(doctor, "is_doctor", False)
+    ):
+        raise HTTPException(status_code=403, detail="Target user role not allowed to validate episodes")
 
     existing = await UserEpisodeValidationRepository.get_by_episode_id(db, episode_id)
     if existing:
@@ -205,6 +219,7 @@ async def validate_episode(
     return ep
 
 # VALIDAR FINAL (solo jefe de turno del doctor que validó inicialmente, tienen mismo turno)
+# Requiere login
 @router.post(
     "/{episode_id}/chief-validate",
     response_model=EpisodeOut,
@@ -214,10 +229,17 @@ async def chief_validate_episode(
     episode_id: int,
     payload: ValidateEpisodeRequest,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
 ):
     ep = await EpisodeRepository.get_by_id(db, episode_id)
     if not ep:
         raise HTTPException(status_code=404, detail="Episode not found")
+
+    if not (getattr(current_user, "is_admin", False) or getattr(current_user, "is_chief_doctor", False)):
+        raise HTTPException(status_code=403, detail="User is not allowed to perform chief validation")
+
+    if not getattr(current_user, "is_admin", False) and payload.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Cannot act on behalf of another user")
 
     chief = await UserRepository.get_by_id(db, payload.user_id)
     if not chief:
