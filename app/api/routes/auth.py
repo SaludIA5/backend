@@ -15,6 +15,7 @@ from app.schemas import LoginRequest, Token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+
 def create_access_token(
     subject: str,
     expires_delta: timedelta | None = None,
@@ -38,6 +39,7 @@ def create_access_token(
         algorithm=settings.security_config.algorithm,
     )
 
+
 @router.post("/login", response_model=Token)
 async def login(
     payload: LoginRequest,
@@ -47,7 +49,9 @@ async def login(
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     if not user or not bcrypt.verify(payload.password, user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
 
     token = create_access_token(
         subject=str(user.id),
@@ -60,14 +64,15 @@ async def login(
         key="access_token",
         value=token,
         httponly=True,
-        secure=False,         # True en producción con HTTPS
-        samesite="lax",       # "none" si front y back están en dominios distintos + HTTPS
+        secure=False,  # True en producción con HTTPS
+        samesite="lax",  # "none" si front y back están en dominios distintos + HTTPS
         max_age=60 * settings.security_config.access_token_expire_minutes,
         path="/",
     )
 
     # También devolvemos el token por compatibilidad (clientes que usan header)
     return Token(access_token=token)
+
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(response: Response):

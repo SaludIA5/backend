@@ -1,9 +1,12 @@
 """Prediction service for ML model inference."""
 
 from typing import Literal
+
 from fastapi import HTTPException, status
 from saluai5_ml import predict_rf, predict_xgb
+
 from app.databases.postgresql.models import User
+
 
 class PredictionService:
     """Service for episode pertinence prediction using ML models."""

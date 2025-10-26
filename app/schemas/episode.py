@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Any, List, Optional, Dict
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field
 from typing_extensions import Annotated
@@ -93,6 +93,7 @@ class EpisodeCreate(BaseModel):
         alias="doctors",
         description="Mapa de turnos (turnoa, turnob, turnoc) a IDs de doctores.",
     )
+
 
 class EpisodeUpdate(BaseModel):
     # todos opcionales: update parcial (PATCH)

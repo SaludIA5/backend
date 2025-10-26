@@ -7,6 +7,7 @@ from sqlalchemy.orm import joinedload
 
 from app.databases.postgresql.models import UserEpisodeValidation
 
+
 class UserEpisodeValidationRepository:
     @staticmethod
     async def get_by_episode_id(

@@ -5,17 +5,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
-from app.repositories import PatientRepository, EpisodeRepository
+from app.databases.postgresql.models import User
+from app.repositories import EpisodeRepository, PatientRepository
 from app.schemas import (
+    EpisodeOut,
+    EpisodeWithTeamAndDoctor,
     PatientCreate,
     PatientOut,
     PatientPage,
     PatientPageMeta,
     PatientUpdate,
-    EpisodeOut,
-    EpisodeWithTeamAndDoctor,
 )
-from app.databases.postgresql.models import User
 from app.services.auth_service import (
     get_current_user,
     require_admin,
@@ -32,7 +32,7 @@ def _total_pages(total: int, size: int) -> int:
 # CREATE
 @router.post("/", response_model=PatientOut, status_code=status.HTTP_201_CREATED)
 async def create_patient(
-    payload: PatientCreate, 
+    payload: PatientCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(require_medical_role)],
 ):
@@ -52,7 +52,7 @@ async def list_patients(
     page_size: int = Query(10, ge=1, le=100),
     search: str | None = None,
     active: bool | None = None,
-    _current: Annotated[User, Depends(get_current_user)] = None,    
+    _current: Annotated[User, Depends(get_current_user)] = None,
 ):
     items, total = await PatientRepository.list_paginated(
         db, page=page, page_size=page_size, search=search, active=active
@@ -71,7 +71,7 @@ async def list_patients(
 # GET BY ID
 @router.get("/{patient_id}", response_model=PatientOut)
 async def get_patient(
-    patient_id: int, 
+    patient_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     _current: Annotated[User, Depends(get_current_user)] = None,
 ):
@@ -103,7 +103,7 @@ async def update_patient(
 # DELETE
 @router.delete("/{patient_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_patient(
-    patient_id: int, 
+    patient_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(require_admin)],
 ):
@@ -113,7 +113,12 @@ async def delete_patient(
     await PatientRepository.hard_delete(db, patient)
     return None
 
-@router.get("/{patient_id}/episodes", response_model=List[EpisodeWithTeamAndDoctor], status_code=status.HTTP_200_OK)
+
+@router.get(
+    "/{patient_id}/episodes",
+    response_model=List[EpisodeWithTeamAndDoctor],
+    status_code=status.HTTP_200_OK,
+)
 async def list_patient_episodes(
     patient_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -136,7 +141,9 @@ async def list_patient_episodes(
         # doctores validadores (Episode.validated_by: List[UserEpisodeValidation] -> .user)
         validations = getattr(ep, "validated_by", []) or []
         item.validator_doctors = [
-            UserOut.model_validate(v.user) for v in validations if getattr(v, "user", None)
+            UserOut.model_validate(v.user)
+            for v in validations
+            if getattr(v, "user", None)
         ]
 
         out.append(item)

@@ -1,8 +1,8 @@
+from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from passlib.hash import bcrypt
-from sqlalchemy import func, select, or_
-from collections import defaultdict
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -127,9 +127,11 @@ class UserRepository:
     async def hard_delete(db: AsyncSession, user: User) -> None:
         db.delete(user)
         await db.commit()
-    
+
     @staticmethod
-    async def group_doctors_and_chiefs_by_turn(db: AsyncSession) -> dict[str, list[User]]:
+    async def group_doctors_and_chiefs_by_turn(
+        db: AsyncSession,
+    ) -> dict[str, list[User]]:
         """
         Devuelve doctores y jefes agrupados por turno.
         Incluye usuarios con is_doctor=True OR is_chief_doctor=True.
@@ -146,4 +148,3 @@ class UserRepository:
         for u in people:
             grouped[u.turn or "Sin turno"].append(u)
         return dict(grouped)
-

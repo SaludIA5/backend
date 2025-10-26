@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
+from app.databases.postgresql.models import User
 from app.repositories.diagnostic import DiagnosticRepository
 from app.schemas.diagnostic import (
     DiagnosticCreate,
@@ -14,12 +15,13 @@ from app.schemas.diagnostic import (
     DiagnosticUpdate,
 )
 from app.services.auth_service import get_current_user, require_admin
-from app.databases.postgresql.models import User
 
 router = APIRouter(prefix="/diagnostics", tags=["diagnostics"])
 
+
 def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
+
 
 # CREATE (Admin)
 @router.post("/", response_model=DiagnosticOut, status_code=status.HTTP_201_CREATED)
@@ -34,6 +36,7 @@ async def create_diagnostic(
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="CIE code ya registrado")
+
 
 # LIST (requiere login: cookie o header)
 @router.get("/", response_model=DiagnosticPage)
@@ -57,6 +60,7 @@ async def list_diagnostics(
         ),
     )
 
+
 # GET by ID (requiere login)
 @router.get("/{diag_id}", response_model=DiagnosticOut)
 async def get_diagnostic(
@@ -68,6 +72,7 @@ async def get_diagnostic(
     if not diag:
         raise HTTPException(status_code=404, detail="Diagnostic not found")
     return diag
+
 
 # UPDATE (Admin)
 @router.patch("/{diag_id}", response_model=DiagnosticOut)
@@ -86,6 +91,7 @@ async def update_diagnostic(
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="CIE code ya registrado")
+
 
 # DELETE (Admin)
 @router.delete("/{diag_id}", status_code=status.HTTP_204_NO_CONTENT)

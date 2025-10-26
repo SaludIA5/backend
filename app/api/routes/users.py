@@ -123,10 +123,15 @@ async def delete_user(
 
 
 # BY TURN (requiere login)
-@router.get("/by-turn", response_model=Dict[str, List[UserOut]], status_code=status.HTTP_200_OK)
+@router.get(
+    "/by-turn", response_model=Dict[str, List[UserOut]], status_code=status.HTTP_200_OK
+)
 async def list_people_grouped_by_turn(
     db: Annotated[AsyncSession, Depends(get_db)],
     _current: Annotated[User, Depends(get_current_user)] = None,
 ):
     grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
-    return {turn: [UserOut.model_validate(u) for u in users] for turn, users in grouped.items()}
+    return {
+        turn: [UserOut.model_validate(u) for u in users]
+        for turn, users in grouped.items()
+    }

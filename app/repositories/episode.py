@@ -1,13 +1,18 @@
-from typing import List, Optional, Tuple, Dict
 from datetime import date
+from typing import Dict, List, Optional, Tuple
 
 from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import joinedload, selectinload
 
-from app.databases.postgresql.models import Diagnostic, Episode
-from app.databases.postgresql.models import User, UserEpisodeValidation, episode_user
+from app.databases.postgresql.models import (
+    Diagnostic,
+    Episode,
+    User,
+    UserEpisodeValidation,
+    episode_user,
+)
 
 
 class EpisodeRepository:
@@ -179,7 +184,7 @@ class EpisodeRepository:
     async def hard_delete(db: AsyncSession, ep: Episode) -> None:
         db.delete(ep)
         await db.commit()
-    
+
     @staticmethod
     async def list_by_doctor_validations(db, doctor_id: int):
         stmt = (
@@ -223,7 +228,7 @@ class EpisodeRepository:
         )
         res = await db.execute(stmt)
         return res.scalars().all()
-    
+
     @staticmethod
     async def list_by_user_team(db, user_id: int):
         """
@@ -276,7 +281,7 @@ class EpisodeRepository:
         )
         res = await db.execute(stmt)
         return res.scalars().all()
-    
+
     @staticmethod
     async def list_by_patient_id(db, patient_id: int):
         """
@@ -288,13 +293,15 @@ class EpisodeRepository:
             .options(
                 selectinload(Episode.diagnostics),
                 selectinload(Episode.team_users),  # doctores asignados (episode_user)
-                joinedload(Episode.validated_by).joinedload(UserEpisodeValidation.user),  # validador (user)
+                joinedload(Episode.validated_by).joinedload(
+                    UserEpisodeValidation.user
+                ),  # validador (user)
             )
             .order_by(Episode.id.desc())
         )
         res = await db.execute(stmt)
         return res.scalars().all()
-    
+
     @staticmethod
     async def create_with_team(
         db: AsyncSession,
@@ -313,7 +320,11 @@ class EpisodeRepository:
             # Asocia diagnósticos si vienen
             if diagnostics_ids:
                 diags = (
-                    (await db.execute(select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))))
+                    (
+                        await db.execute(
+                            select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
+                        )
+                    )
                     .scalars()
                     .all()
                 )
@@ -333,7 +344,10 @@ class EpisodeRepository:
                         .all()
                     )
                     if existing_ids:
-                        values = [{"episode_id": ep.id, "user_id": uid} for uid in existing_ids]
+                        values = [
+                            {"episode_id": ep.id, "user_id": uid}
+                            for uid in existing_ids
+                        ]
                         await db.execute(insert(episode_user), values)
 
         # refrescamos relaciones útiles para la respuesta
