@@ -47,6 +47,8 @@ async def create_episode(
         return ep
     except IntegrityError:
         raise HTTPException(status_code=409, detail="numero_episodio ya registrado")
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # LIST (requiere login)
@@ -86,7 +88,43 @@ async def get_episode(
     return ep
 
 
-# UPDATE (cualquier rol médico: doctor / chief / admin)
+
+@router.get("/status/{patient_id}", response_model=dict)
+async def get_patient_episodes(
+    patient_id: int,
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    episodes = await EpisodeRepository.get_by_patient_id(db, patient_id)
+    if not episodes:
+        raise HTTPException(
+            status_code=404, detail="No episodes found for this patient"
+        )
+
+    open_episodes = [ep for ep in episodes if ep.estado_del_caso != "Cerrado"]
+    closed_episodes = [ep for ep in episodes if ep.estado_del_caso == "Cerrado"]
+
+    return {
+        "patient_id": patient_id,
+        "open_episodes": [
+            {
+                "id": ep.id,
+                "estado_del_caso": ep.estado_del_caso,
+                "numero_episodio": ep.numero_episodio,
+            }
+            for ep in open_episodes
+        ],
+        "closed_episodes": [
+            {
+                "id": ep.id,
+                "estado_del_caso": ep.estado_del_caso,
+                "numero_episodio": ep.numero_episodio,
+            }
+            for ep in closed_episodes
+        ],
+    }
+
+
+
 @router.patch("/{episode_id}", response_model=EpisodeOut)
 async def update_episode(
     episode_id: int,

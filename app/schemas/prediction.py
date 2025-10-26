@@ -57,6 +57,7 @@ class PredictionRequest(BaseModel):
     # transfusiones: Optional[str] = None
     # compromiso_conciencia: Optional[str] = None
 
+    id_episodio: Optional[int] = None
     numero_episodio: Optional[str] = None
     tipo: Optional[str] = None
     tipo_alerta_ugcc: Optional[str] = None
@@ -104,6 +105,7 @@ class PredictionRequest(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
+                "id_episodio": 0,
                 "numero_episodio": "0",
                 "diagnostics": None,
                 "antecedentes_cardiaco": True,
