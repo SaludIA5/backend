@@ -96,6 +96,7 @@ async def get_episode(
 async def get_patient_episodes(
     patient_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)] = None
 ):
     episodes = await EpisodeRepository.get_by_patient_id(db, patient_id)
     if not episodes:

@@ -11,13 +11,15 @@ from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import Episode
 from app.schemas.prediction import PredictionRequest, PredictionResponse
 from app.services.prediction_service import PredictionService
+from app.services.auth_service import require_medical_role
+from app.databases.postgresql.models import User
 
 router = APIRouter(prefix="/predictions", tags=["predictions"])
 
 
 @router.post("/", response_model=PredictionResponse, status_code=status.HTTP_200_OK)
 async def predict_episode_pertinence(
-    payload: PredictionRequest, db: Annotated[AsyncSession, Depends(get_db)]
+    payload: PredictionRequest, db: Annotated[AsyncSession, Depends(get_db)], current_user: Annotated[User, Depends(require_medical_role)],
 ):
     """
     Predict if an episode is PERTINENTE or NO PERTINENTE using ML models.
@@ -44,7 +46,7 @@ async def predict_episode_pertinence(
         # print(episode_data)
         # Make prediction
         result = PredictionService.predict_episode_pertinence(
-            episode_data=episode_data, model_type=payload.model_type
+            episode_data=episode_data, model_type=payload.model_type, current_user=current_user
         )
 
         # Se agrega a la columna "recomendacion modelo del respectivo episodio"
