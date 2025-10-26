@@ -22,6 +22,7 @@ from .patient import (
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 
+from .validation import ValidateEpisodeRequest
 from .episode_validated_out import EpisodeWithDoctor
 from .episode_assigned_out import EpisodeWithTeam
 from .episode_team_doctor_out import EpisodeWithTeamAndDoctor
@@ -49,6 +50,7 @@ __all__ = [
     "UserPageMeta",
     "Token",
     "LoginRequest",
+    "ValidateEpisodeRequest",
     "EpisodeWithDoctor",
     "EpisodeWithTeam",
     "EpisodeWithTeamAndDoctor",
