@@ -31,9 +31,9 @@ async def create_user(
             rut=payload.rut,
             password=payload.password,
             # Ignoramos flags del payload por seguridad:
-            is_chief_doctor=False,
-            is_doctor=False,
-            turn=None,
+            is_chief_doctor=payload.is_chief_doctor,
+            is_doctor=payload.is_doctor,
+            turn=payload.turn,
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Email ya registrado")
