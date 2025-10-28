@@ -8,8 +8,6 @@ from app.databases.postgresql.db import get_db
 from app.repositories.metric import MetricRepository
 from app.schemas.metric import (
     EpisodeMetrics,
-    MetricPage,
-    MetricPageMeta,
     MetricsSummary,
     RecommendationMetrics,
     ValidationMetrics,
@@ -32,6 +30,7 @@ async def get_recommendation_metrics(
         None, description="Fecha de inicio del período"
     ),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
+    #  _current: Annotated[User, Depends(require_medical_role)] = None,
 ):
     """Obtiene métricas detalladas de recomendaciones de IA"""
     try:
@@ -53,6 +52,7 @@ async def get_validation_metrics_by_doctor(
         None, description="Fecha de inicio del período"
     ),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
+    # _current: Annotated[User, Depends(require_medical_role)] = None,
 ):
     """Obtiene métricas de validaciones agrupadas por médico"""
     try:
@@ -78,6 +78,7 @@ async def get_episode_metrics(
         100, ge=1, le=1000, description="Límite de episodios a retornar"
     ),
     offset: int = Query(0, ge=0, description="Offset para paginación"),
+    # _current: Annotated[User, Depends(require_medical_role)] = None,
 ):
     """Obtiene métricas detalladas por episodio"""
     try:
@@ -99,6 +100,7 @@ async def get_metrics_summary(
         None, description="Fecha de inicio del período"
     ),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
+    # _current: Annotated[User, Depends(require_medical_role)] = None,
 ):
     """Obtiene resumen completo de todas las métricas"""
     try:
@@ -110,35 +112,4 @@ async def get_metrics_summary(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al obtener resumen de métricas: {str(e)}",
-        )
-
-
-# ENDPOINTS BÁSICOS DE MÉTRICAS (para compatibilidad)
-
-
-@router.get("/", response_model=MetricPage)
-async def list_metrics(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    page: int = Query(1, ge=1),
-    page_size: int = Query(10, ge=1, le=100),
-    search: str | None = None,
-):
-    """Lista métricas básicas (implementación básica para compatibilidad)"""
-    try:
-        items, total = await MetricRepository.list_paginated(
-            db, page=page, page_size=page_size, search=search
-        )
-        return MetricPage(
-            items=items,
-            meta=MetricPageMeta(
-                page=page,
-                page_size=page_size,
-                total=total,
-                total_pages=_total_pages(total, page_size),
-            ),
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error al listar métricas: {str(e)}",
         )
