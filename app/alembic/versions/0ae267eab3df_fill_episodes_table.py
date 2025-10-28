@@ -16,6 +16,8 @@ from sqlalchemy import Boolean, Date, Integer, Numeric, String
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import column, select, table
 
+from app.databases.postgresql.seeds.patients_generator import generate_patient_data
+
 revision: str = "0ae267eab3df"
 # down_revision: Union[str, Sequence[str], None] = '4d97e8a97167'
 down_revision: Union[str, Sequence[str], None] = "e7723e54e9b8"
@@ -88,18 +90,47 @@ def upgrade():
     session = Session(bind=bind)
     episodes_table = define_episodes_table()
 
-    patients_table = table("patients", column("id", Integer))
-    patient_ids_result = session.execute(select(patients_table.c.id)).fetchall()
-    patient_ids = [row[0] for row in patient_ids_result]
+    # patients_table = table("patients", column("id", Integer))
+    # patient_ids_result = session.execute(select(patients_table.c.id).limit(115)).fetchall()
+    # patient_ids = [row[0] for row in patient_ids_result]
 
-    assigned_ids = patient_ids.copy()
-    random.shuffle(assigned_ids)
+    # assigned_ids = patient_ids.copy()
+    # random.shuffle(assigned_ids)
 
     CSV_PATH = (
         BASE_PATH / "databases" / "postgresql" / "seeds" / "data" / "episodes_data.csv"
     )
     df = pd.read_csv(CSV_PATH)
-    df["patient_id"] = assigned_ids
+
+    # patients_table = table("patients", column("id", Integer))
+    # patient_ids_result = session.execute(select(patients_table.c.id).limit(len(df))).fetchall()
+    # patient_ids = [row[0] for row in patient_ids_result]
+
+    # assigned_ids = patient_ids.copy()
+    # random.shuffle(assigned_ids)
+    # df["patient_id"] = assigned_ids
+    seed_patients = generate_patient_data(len(df))
+    rut_list = [p["rut"] for p in seed_patients]
+
+    # Recuperar IDs de esos pacientes desde la base
+    patients_table = table("patients", column("id", Integer), column("rut", String))
+    query = select(patients_table.c.id, patients_table.c.rut).where(
+        patients_table.c.rut.in_(rut_list)
+    )
+    result = session.execute(query).fetchall()
+    rut_to_id = {rut: pid for pid, rut in result}
+
+    if not rut_to_id:
+        raise RuntimeError("No se encontraron pacientes generados en la base de datos")
+
+    # Asignar patient_id a cada episodio según la lista de pacientes generados
+    assigned_ruts = list(rut_to_id.keys())
+    random.seed(42)
+    random.shuffle(assigned_ruts)
+    df["patient_id"] = [
+        rut_to_id[rut]
+        for rut in (assigned_ruts * ((len(df) // len(assigned_ruts)) + 1))[: len(df)]
+    ]
 
     orden_columnas = [
         "patient_id",

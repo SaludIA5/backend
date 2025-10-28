@@ -1,7 +1,8 @@
+# app/api/routes/auth.py
 from datetime import datetime, timedelta
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from jose import jwt
 from passlib.hash import bcrypt
 from sqlalchemy import select
@@ -40,7 +41,11 @@ def create_access_token(
 
 
 @router.post("/login", response_model=Token)
-async def login(payload: LoginRequest, db: Annotated[AsyncSession, Depends(get_db)]):
+async def login(
+    payload: LoginRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    response: Response,  # <-- necesario para setear cookie
+):
     result = await db.execute(select(User).where(User.email == payload.email))
     user = result.scalar_one_or_none()
     if not user or not bcrypt.verify(payload.password, user.hashed_password):
@@ -53,4 +58,23 @@ async def login(payload: LoginRequest, db: Annotated[AsyncSession, Depends(get_d
         is_doctor=user.is_doctor,
         is_chief_doctor=user.is_chief_doctor,
     )
+
+    # Cookie HttpOnly (ajusta secure/samesite según entorno)
+    response.set_cookie(
+        key="access_token",
+        value=token,
+        httponly=True,
+        secure=False,  # True en producción con HTTPS
+        samesite="lax",  # "none" si front y back están en dominios distintos + HTTPS
+        max_age=60 * settings.security_config.access_token_expire_minutes,
+        path="/",
+    )
+
+    # También devolvemos el token por compatibilidad (clientes que usan header)
     return Token(access_token=token)
+
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(response: Response):
+    response.delete_cookie("access_token", path="/")
+    return None

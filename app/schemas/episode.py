@@ -1,6 +1,6 @@
 from datetime import date
 from decimal import Decimal
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, BeforeValidator, Field
 from typing_extensions import Annotated
@@ -31,7 +31,7 @@ class DiagnosticLite(BaseModel):
 # -------- Inputs --------
 class EpisodeCreate(BaseModel):
     patient_id: int
-    numero_episodio: str = Field(..., min_length=1, max_length=50)
+    numero_episodio: Optional[str] = None
     # campos opcionales (agrega los que uses con más frecuencia)
     fecha_estabilizacion: Optional[date] = None
     fecha_alta: Optional[date] = None
@@ -88,11 +88,17 @@ class EpisodeCreate(BaseModel):
     # IDs de diagnósticos para asociar (muchos-a-muchos)
     diagnostics_ids: Optional[List[int]] = None
 
+    doctors_by_turn: Dict[str, int] = Field(
+        default_factory=dict,
+        alias="doctors",
+        description="Mapa de turnos (turnoa, turnob, turnoc) a IDs de doctores.",
+    )
+
 
 class EpisodeUpdate(BaseModel):
     # todos opcionales: update parcial (PATCH)
     patient_id: Optional[int] = None
-    numero_episodio: Optional[str] = Field(None, min_length=1, max_length=50)
+    numero_episodio: Optional[str] = None
     fecha_estabilizacion: Optional[date] = None
     fecha_alta: Optional[date] = None
     validacion: Optional[str] = None
@@ -161,7 +167,7 @@ class EpisodeOut(BaseModel):
 
     id: int
     patient_id: int
-    numero_episodio: str = Field(..., min_length=1, max_length=50)
+    numero_episodio: Optional[str] = None
     # campos opcionales (agrega los que uses con más frecuencia)
     fecha_estabilizacion: Optional[date] = None
     fecha_alta: Optional[date] = None
