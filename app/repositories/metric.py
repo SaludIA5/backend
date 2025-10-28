@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Optional
 
-from sqlalchemy import func, select
+from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -214,27 +214,33 @@ class MetricRepository:
                 User.id,
                 User.name,
                 func.count(Episode.id).label("total_validations"),
-                func.sum(func.case((Episode.validacion.isnot(None), 1), else_=0)).label(
+                func.sum(case((Episode.validacion.isnot(None), 1), else_=0)).label(
                     "accepted_validations"
                 ),
-                func.sum(func.case((Episode.validacion.is_(None), 1), else_=0)).label(
+                func.sum(case((Episode.validacion.is_(None), 1), else_=0)).label(
                     "rejected_validations"
                 ),
                 func.sum(
-                    func.case(
-                        (Episode.recomendacion_modelo == Episode.validacion, 1), else_=0
+                    case(
+                        (Episode.recomendacion_modelo == Episode.validacion, 1),
+                        else_=0,
                     )
                 ).label("concordant_validations"),
                 func.sum(
-                    func.case(
-                        (Episode.recomendacion_modelo != Episode.validacion, 1), else_=0
+                    case(
+                        (Episode.recomendacion_modelo != Episode.validacion, 1),
+                        else_=0,
                     )
                 ).label("discordant_validations"),
             )
-            .select_from(
-                User.join(
-                    UserEpisodeValidation, User.id == UserEpisodeValidation.user_id
-                ).join(Episode, UserEpisodeValidation.episode_id == Episode.id)
+            .select_from(User)
+            .join(
+                UserEpisodeValidation,
+                User.id == UserEpisodeValidation.user_id,
+            )
+            .join(
+                Episode,
+                UserEpisodeValidation.episode_id == Episode.id,
             )
             .where(Episode.recomendacion_modelo.isnot(None))
             .group_by(User.id, User.name)
@@ -429,15 +435,3 @@ class MetricRepository:
             period_start=start_date,
             period_end=end_date,
         )
-
-    @staticmethod
-    async def list_paginated(
-        db: AsyncSession,
-        page: int = 1,
-        page_size: int = 10,
-        search: Optional[str] = None,
-    ) -> Tuple[list, int]:
-        """Lista métricas con paginación (implementación básica)"""
-        # Esta es una implementación básica para compatibilidad
-        # En un caso real, podrías tener una tabla de métricas almacenadas
-        return [], 0
