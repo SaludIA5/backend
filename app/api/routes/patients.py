@@ -8,13 +8,13 @@ from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import User
 from app.repositories import EpisodeRepository, PatientRepository
 from app.schemas import (
-    EpisodeOut,
     EpisodeWithTeamAndDoctor,
     PatientCreate,
     PatientOut,
     PatientPage,
     PatientPageMeta,
     PatientUpdate,
+    UserOut,
 )
 from app.services.auth_service import (
     get_current_user,
