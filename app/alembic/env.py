@@ -12,16 +12,16 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 sys.path.insert(0, project_root)
 
 from app.core.config import settings
-from app.databases.postgresql.db import Base
+from app.databases.postgresql.base import Base
 
 # --- Configuración base de Alembic ---
 config = context.config
 
-# FORZAR uso del driver asyncpg incluso si la variable viene mal seteada
+# La URL ya viene correctamente formateada desde settings
 db_url = settings.database_postgresql_url
-if db_url.startswith("postgresql://"):
-    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
-
+print(
+    f"[ALEMBIC] Using database URL: {db_url.split('@')[0]}@***"
+)  # Mostrar sin password
 config.set_main_option("sqlalchemy.url", db_url)
 
 if config.config_file_name is not None:

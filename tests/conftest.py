@@ -11,7 +11,8 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from app.databases.postgresql.db import Base, get_db
+from app.databases.postgresql.base import Base
+from app.databases.postgresql.db import get_db
 from app.main import app
 
 # Configuración para base de datos de testing
