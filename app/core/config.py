@@ -26,16 +26,27 @@ class GlobalConfig(BaseSettings):
 class DatabasePostgresqlConfig(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="BACKEND_DB_PSQL_")
 
-    host: str
-    port: int
-    user: str
-    password: str
-    name: str
+    host: Optional[str] = None
+    port: Optional[int] = None
+    user: Optional[str] = None
+    password: Optional[str] = None
+    name: Optional[str] = None
     url: Optional[str] = None
 
     def get_database_url(self) -> str:
         if self.url:
-            return self.url
+            # Asegurar que siempre use asyncpg como driver
+            db_url = self.url
+            if db_url.startswith("postgresql://"):
+                db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            elif "+" not in db_url and db_url.startswith("postgresql"):
+                db_url = db_url.replace("postgresql", "postgresql+asyncpg", 1)
+            return db_url
+        # Si no hay URL completa, construimos desde componentes individuales
+        if not all([self.host, self.port, self.user, self.password, self.name]):
+            raise ValueError(
+                "Either 'url' must be provided or all of 'host', 'port', 'user', 'password', and 'name'"
+            )
         return (
             f"postgresql+asyncpg://{self.user}:{self.password}"
             f"@{self.host}:{self.port}/{self.name}"
