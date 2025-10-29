@@ -33,7 +33,7 @@ async def create_user(
             # Ignoramos flags del payload por seguridad:
             is_chief_doctor=False,
             is_doctor=False,
-            turn=None,
+            turn=payload.turn if payload.turn is not None else None,
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Email ya registrado")
@@ -67,11 +67,10 @@ async def list_users(
 )
 async def list_people_grouped_by_turn(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _current: Annotated[User, Depends(get_current_user)] = None,
 ):
     grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
     return {
-        turn: [UserOut.model_validate(u) for u in users]
+        turn if turn in ["A", "B", "C"] else "Sin turno": [UserOut.model_validate(u) for u in users]
         for turn, users in grouped.items()
     }
 
@@ -133,3 +132,4 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     await UserRepository.hard_delete(db, user)
     return None
+
