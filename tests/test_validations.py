@@ -1,12 +1,12 @@
 import pytest
-
-from app.api.routes.episodes import (
-    validate_episode,
-    chief_validate_episode,
-)
-from app.schemas.episode import EpisodeOut
-from app.schemas.validation import ValidateEpisodeRequest
 from sqlalchemy import inspect
+
+# from app.api.routes.episodes import (
+#     chief_validate_episode,
+#     validate_episode,
+# )
+# from app.schemas.episode import EpisodeOut
+# from app.schemas.validation import ValidateEpisodeRequest
 
 
 @pytest.mark.asyncio
@@ -28,6 +28,7 @@ async def test_validate_episode_success(
         json={"user_id": safe_doc.id, "decision": "PERTINENTE"},
     )
     assert res.status_code == 200
+
 
 @pytest.mark.asyncio
 async def test_chief_validate_success_same_turn(
@@ -57,6 +58,7 @@ async def test_chief_validate_success_same_turn(
     )
     assert res_chief.status_code == 200
 
+
 @pytest.mark.asyncio
 async def test_validate_forbidden_for_non_doctor(
     async_client_isolated,
@@ -75,7 +77,8 @@ async def test_validate_forbidden_for_non_doctor(
         is_chief_doctor=False,
     )
 
-    safe_doc = auth_user_manager_safe(doctor_user, is_doctor=True, turn="A")
+    # safe_doc = auth_user_manager_safe(doctor_user, is_doctor=True, turn="A")
+    auth_user_manager_safe(doctor_user, is_doctor=True, turn="A")
     patient_id = await make_patient_isolated()
     episode_id = await make_episode_isolated(patient_id)
     await set_ai_recommendation_isolated(episode_id)
@@ -104,8 +107,8 @@ async def test_validate_episode_forbidden_impersonation_non_admin(
     doc_b = await create_user(
         name="Doc B", email="b@example.com", rut="22222222K", is_doctor=True, turn="A"
     )
-    safe_doc_a = auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
-
+    # safe_doc_a = auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
+    auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
     patient_id = await make_patient_isolated()
     episode_id = await make_episode_isolated(patient_id)
     await set_ai_recommendation_isolated(episode_id)
@@ -255,7 +258,9 @@ async def test_chief_validate_forbidden_role_current_user(
         json={"user_id": safe_doc.id, "decision": "PERTINENTE"},
     )
     assert res_chief.status_code == 403
-    assert res_chief.json()["detail"] == "User is not allowed to perform chief validation"
+    assert (
+        res_chief.json()["detail"] == "User is not allowed to perform chief validation"
+    )
 
     get_res = await async_client_isolated.get(f"/episodes/{episode_id}")
     assert get_res.status_code == 200
@@ -394,7 +399,7 @@ async def test_chief_validate_episode_not_found(
     async_client_isolated, auth_user_manager_safe, chief_user
 ):
     safe_chief = auth_user_manager_safe(chief_user, is_chief_doctor=True)
-    
+
     # Se usa un episode_id inexistente
     res = await async_client_isolated.post(
         "/episodes/999999/chief-validate",

@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from passlib.hash import bcrypt
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -135,10 +135,7 @@ class UserRepository:
         """
         Devuelve todos los usuarios agrupados por turno.
         """
-        stmt = (
-            select(User)
-            .order_by(User.turn, User.name)
-        )
+        stmt = select(User).order_by(User.turn, User.name)
         res = await db.execute(stmt)
         people = res.scalars().all()
 

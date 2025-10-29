@@ -3,23 +3,23 @@
 import asyncio
 import os
 import random
-from typing import AsyncGenerator, Generator, Callable, Awaitable
-from types import SimpleNamespace
 import uuid
+from types import SimpleNamespace
+from typing import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
-from sqlalchemy import inspect
 
 from app.databases.postgresql.base import Base
 from app.databases.postgresql.db import get_db
+from app.main import app
 from app.repositories.user import UserRepository
 from app.services.auth_service import get_current_user
-from app.main import app
 
 # Configuración para base de datos de testing
 TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
@@ -37,7 +37,11 @@ TestSessionLocal = async_sessionmaker(
 
 # NUEVO: sessionmaker que NO expira atributos al hacer commit
 TestSessionLocalNoExpire = async_sessionmaker(
-    autocommit=False, autoflush=False, bind=test_engine, class_=AsyncSession, expire_on_commit=False
+    autocommit=False,
+    autoflush=False,
+    bind=test_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
 )
 
 
@@ -60,6 +64,14 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest.fixture(scope="function", autouse=True)
+async def clean_db(db_session: AsyncSession):
+    """Limpia la base de datos después de cada test."""
+    for table in reversed(Base.metadata.sorted_tables):
+        await db_session.execute(table.delete())
+    await db_session.commit()
 
 
 @pytest.fixture(scope="function")
@@ -114,6 +126,7 @@ async def create_user(db_session: AsyncSession):
     """
     Factory async para crear usuarios con roles específicos usando el repositorio.
     """
+
     async def _create(
         *,
         name: str,
@@ -134,6 +147,7 @@ async def create_user(db_session: AsyncSession):
             is_chief_doctor=is_chief_doctor,
             turn=turn,
         )
+
     return _create
 
 
@@ -178,7 +192,9 @@ def auth_user_manager_safe(request):
             id=int(pk) if pk is not None else None,
             email=overrides.get("email"),
             is_doctor=bool(overrides.get("is_doctor", False)),
-            is_chief_doctor=bool(overrides.get("is_chief_doctor", overrides.get("is_chief", False))),
+            is_chief_doctor=bool(
+                overrides.get("is_chief_doctor", overrides.get("is_chief", False))
+            ),
             is_admin=bool(overrides.get("is_admin", False)),
             turn=overrides.get("turn"),
             name=overrides.get("name"),
@@ -223,9 +239,12 @@ async def make_patient_isolated(async_client_isolated: AsyncClient):
     async def _create(headers: dict | None = None) -> int:
         rut = f"{random.randint(5_000_000, 25_000_000)}-{random.choice('0123456789K')}"
         payload = {"name": "John Lennon", "rut": rut, "age": 45}
-        res = await async_client_isolated.post("/patients/", json=payload, headers=headers or {})
+        res = await async_client_isolated.post(
+            "/patients/", json=payload, headers=headers or {}
+        )
         assert res.status_code == 201, res.text
         return res.json()["id"]
+
     return _create
 
 
@@ -238,15 +257,19 @@ async def make_episode_isolated(async_client_isolated: AsyncClient):
             "triage": 3,
             "numero_episodio": f"test-{uuid.uuid4().hex[:8]}",
         }
-        res = await async_client_isolated.post("/episodes/", json=payload, headers=headers or {})
+        res = await async_client_isolated.post(
+            "/episodes/", json=payload, headers=headers or {}
+        )
         assert res.status_code == 201, res.text
         return res.json()["id"]
+
     return _create
 
 
 @pytest_asyncio.fixture(scope="function")
 async def set_ai_recommendation_isolated(async_client_isolated: AsyncClient):
     """Setea recomendación de IA vía /predictions/ usando el usuario autenticado actual."""
+
     async def _set(episode_id: int, headers: dict | None = None):
         payload = {
             "model_type": "random_forest",
@@ -257,6 +280,9 @@ async def set_ai_recommendation_isolated(async_client_isolated: AsyncClient):
             "presion_sistolica": 120,
             "presion_diastolica": 80,
         }
-        res = await async_client_isolated.post("/predictions/", json=payload, headers=headers or {})
+        res = await async_client_isolated.post(
+            "/predictions/", json=payload, headers=headers or {}
+        )
         assert res.status_code in (200, 201), res.text
+
     return _set

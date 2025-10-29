@@ -3,6 +3,8 @@
 import factory
 from faker import Faker
 
+from app.databases.postgresql.models import Episode
+
 fake = Faker()
 
 
@@ -172,3 +174,28 @@ class PredictionDataFactory(BaseFactory):
             "compromiso_conciencia": False,
             **kwargs,
         }
+
+
+class EpisodeFactory(BaseFactory):
+    """Factory para generar episodios médicos de prueba."""
+
+    class Meta:
+        model = Episode
+
+    id = factory.Sequence(lambda n: n + 1)
+    numero_episodio = factory.LazyFunction(lambda: fake.uuid4())
+    patient_id = factory.Sequence(lambda n: n + 1)
+    fecha_estabilizacion = factory.LazyFunction(lambda: fake.date_this_year())
+    fecha_alta = factory.LazyFunction(lambda: fake.date_this_year())
+    validacion = factory.LazyFunction(
+        lambda: fake.random_element(["VALIDADO", "PENDIENTE"])
+    )
+    tipo = factory.LazyFunction(lambda: fake.random_element(["URGENTE", "NORMAL"]))
+    tipo_alerta_ugcc = factory.LazyFunction(
+        lambda: fake.random_element(["SIN ALERTA", "ALERTA"])
+    )
+    fecha_ingreso = factory.LazyFunction(lambda: fake.date_this_year())
+    mes_ingreso = factory.LazyFunction(lambda: fake.random_int(min=1, max=12))
+    fecha_egreso = factory.LazyFunction(lambda: fake.date_this_year())
+    mes_egreso = factory.LazyFunction(lambda: fake.random_int(min=1, max=12))
+    centro = factory.LazyFunction(lambda: fake.company())
