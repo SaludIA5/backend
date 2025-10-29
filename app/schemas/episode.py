@@ -238,3 +238,8 @@ class EpisodePageMeta(BaseModel):
 class EpisodePage(BaseModel):
     items: List[EpisodeOut]
     meta: EpisodePageMeta
+
+
+class EpisodeOutWithPatient(EpisodeOut):
+    patient_name: str | None = None
+    patient_rut: str | None = None

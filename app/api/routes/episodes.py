@@ -12,6 +12,7 @@ from app.repositories.user_episode_validation import UserEpisodeValidationReposi
 from app.schemas.episode import (
     EpisodeCreate,
     EpisodeOut,
+    EpisodeOutWithPatient,
     EpisodePage,
     EpisodePageMeta,
     EpisodeUpdate,
@@ -33,8 +34,53 @@ def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
 
 
+# ASSIGNED (rol según usuario autenticado)
+@router.get(
+    "/assigned", response_model=List[EpisodeWithTeam], status_code=status.HTTP_200_OK
+)
+async def list_assigned_episodes(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """
+    - Admin -> todos (equipo completo)
+    - Chief -> episodios con al menos un doctor de su 'turn' asignado
+    - Doctor -> episodios donde él está asignado
+    """
+    if getattr(current_user, "is_admin", False):
+        episodes = await EpisodeRepository.list_all_with_team(db)
+    elif current_user.is_chief_doctor and not current_user.is_admin:
+        if not current_user.turn:
+            raise HTTPException(
+                status_code=400, detail="Chief doctor has no 'turn' set"
+            )
+        episodes = await EpisodeRepository.list_by_turn_team(db, current_user.turn)
+    elif current_user.is_doctor and not current_user.is_admin:
+        episodes = await EpisodeRepository.list_by_user_team(db, current_user.id)
+    else:
+        raise HTTPException(status_code=403, detail="Role not allowed")
+
+    out: list[EpisodeWithTeam] = []
+    for ep in episodes:
+        item = EpisodeWithTeam.model_validate(ep)
+        team_users = getattr(ep, "team_users", []) or []
+        object.__setattr__(
+            item, "assigned_doctors", [UserOut.model_validate(u) for u in team_users]
+        )
+        patient = getattr(ep, "patient", None)
+        if patient:
+            object.__setattr__(item, "patient_name", getattr(patient, "name", None))
+            object.__setattr__(item, "patient_rut", getattr(patient, "rut", None))
+            object.__setattr__(item, "patient_age", getattr(patient, "age", None))
+        out.append(item)
+
+    return out
+
+
 # CREATE (cualquier rol médico: doctor / chief / admin)
-@router.post("/", response_model=EpisodeOut, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/", response_model=EpisodeOutWithPatient, status_code=status.HTTP_201_CREATED
+)
 async def create_episode(
     payload: EpisodeCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -51,7 +97,12 @@ async def create_episode(
             diagnostics_ids=payload.diagnostics_ids,
             doctors_by_turn=payload.doctors_by_turn,  # viene de "doctors" (alias)
         )
-        return ep
+        item = EpisodeOutWithPatient.model_validate(ep)
+        patient = getattr(ep, "patient", None)
+        if patient:
+            object.__setattr__(item, "patient_name", getattr(patient, "name", None))
+            object.__setattr__(item, "patient_rut", getattr(patient, "rut", None))
+        return item
     except IntegrityError:
         raise HTTPException(status_code=409, detail="numero_episodio ya registrado")
     except ValueError as e:
@@ -306,44 +357,6 @@ async def chief_validate_episode(
 
     ep = await EpisodeRepository.get_by_id(db, episode_id)
     return ep
-
-
-# ASSIGNED (rol según usuario autenticado)
-@router.get(
-    "/assigned", response_model=List[EpisodeWithTeam], status_code=status.HTTP_200_OK
-)
-async def list_assigned_episodes(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    """
-    - Admin -> todos (equipo completo)
-    - Chief -> episodios con al menos un doctor de su 'turn' asignado
-    - Doctor -> episodios donde él está asignado
-    """
-    if getattr(current_user, "is_admin", False):
-        episodes = await EpisodeRepository.list_all_with_team(db)
-    elif current_user.is_chief_doctor and not current_user.is_admin:
-        if not current_user.turn:
-            raise HTTPException(
-                status_code=400, detail="Chief doctor has no 'turn' set"
-            )
-        episodes = await EpisodeRepository.list_by_turn_team(db, current_user.turn)
-    elif current_user.is_doctor and not current_user.is_admin:
-        episodes = await EpisodeRepository.list_by_user_team(db, current_user.id)
-    else:
-        raise HTTPException(status_code=403, detail="Role not allowed")
-
-    out: list[EpisodeWithTeam] = []
-    for ep in episodes:
-        item = EpisodeWithTeam.model_validate(ep)
-        team_users = getattr(ep, "team_users", []) or []
-        object.__setattr__(
-            item, "assigned_doctors", [UserOut.model_validate(u) for u in team_users]
-        )
-        out.append(item)
-
-    return out
 
 
 # VALIDATED (rol según usuario autenticado)

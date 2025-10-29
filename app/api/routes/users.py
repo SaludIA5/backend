@@ -17,6 +17,21 @@ def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
 
 
+# BY TURN (requiere login)
+@router.get(
+    "/by-turn", response_model=Dict[str, List[UserOut]], status_code=status.HTTP_200_OK
+)
+async def list_people_grouped_by_turn(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _current: Annotated[User, Depends(get_current_user)] = None,
+):
+    grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
+    return {
+        turn: [UserOut.model_validate(u) for u in users]
+        for turn, users in grouped.items()
+    }
+
+
 # SIGNUP (público) — fuerza roles en False para evitar escalamiento
 @router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def create_user(
@@ -31,8 +46,8 @@ async def create_user(
             rut=payload.rut,
             password=payload.password,
             # Ignoramos flags del payload por seguridad:
-            is_chief_doctor=False,
-            is_doctor=False,
+            is_chief_doctor=payload.is_chief_doctor,
+            is_doctor=payload.is_doctor,
             turn=None,
         )
     except IntegrityError:
@@ -120,18 +135,3 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
     await UserRepository.hard_delete(db, user)
     return None
-
-
-# BY TURN (requiere login)
-@router.get(
-    "/by-turn", response_model=Dict[str, List[UserOut]], status_code=status.HTTP_200_OK
-)
-async def list_people_grouped_by_turn(
-    db: Annotated[AsyncSession, Depends(get_db)],
-    _current: Annotated[User, Depends(get_current_user)] = None,
-):
-    grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
-    return {
-        turn: [UserOut.model_validate(u) for u in users]
-        for turn, users in grouped.items()
-    }
