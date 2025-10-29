@@ -1,0 +1,7 @@
+[run]
+source = app
+concurrency = gevent
+
+[report]
+show_missing = True
+skip_covered = True
