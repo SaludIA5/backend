@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from passlib.hash import bcrypt
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
