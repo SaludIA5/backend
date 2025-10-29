@@ -135,10 +135,7 @@ class UserRepository:
         """
         Devuelve todos los usuarios agrupados por turno.
         """
-        stmt = (
-            select(User)
-            .order_by(User.turn, User.name)
-        )
+        stmt = select(User).order_by(User.turn, User.name)
         res = await db.execute(stmt)
         people = res.scalars().all()
 
