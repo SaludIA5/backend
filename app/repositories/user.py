@@ -133,13 +133,11 @@ class UserRepository:
         db: AsyncSession,
     ) -> dict[str, list[User]]:
         """
-        Devuelve doctores y jefes agrupados por turno.
-        Incluye usuarios con is_doctor=True OR is_chief_doctor=True.
+        Devuelve todos los usuarios agrupados por turno.
         """
         stmt = (
             select(User)
-            .where(or_(User.is_doctor.is_(True), User.is_chief_doctor.is_(True)))
-            .order_by(User.turn, User.is_chief_doctor.desc(), User.name)
+            .order_by(User.turn, User.name)
         )
         res = await db.execute(stmt)
         people = res.scalars().all()
