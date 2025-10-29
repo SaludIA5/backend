@@ -31,6 +31,9 @@ services:
       - saluai5-backend 
     volumes:
       - ./app:/app
+      - ./tests:/tests
+      - ./pytest.ini:/pytest.ini
+      - ./.coveragerc:/.coveragerc
   
   postgresql_db:
     image: postgres:15
