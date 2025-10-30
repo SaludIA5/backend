@@ -73,7 +73,13 @@ async def login(
     )
 
     # También devolvemos el token por compatibilidad (clientes que usan header)
-    return Token(access_token=token)
+    return Token(
+        access_token=token,
+        is_doctor=user.is_doctor,
+        is_chief_doctor=user.is_chief_doctor,
+        is_admin=user.is_admin,
+        user_id=user.id,
+    )
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
