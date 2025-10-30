@@ -241,6 +241,7 @@ class EpisodeRepository:
             .options(
                 selectinload(Episode.diagnostics),
                 selectinload(Episode.team_users),  # carga todo el equipo
+                selectinload(Episode.patient),  # datos del paciente
             )
             .order_by(Episode.id.desc())
         )
@@ -260,6 +261,7 @@ class EpisodeRepository:
             .options(
                 selectinload(Episode.diagnostics),
                 selectinload(Episode.team_users),  # carga todo el equipo
+                selectinload(Episode.patient),  # datos del paciente
             )
             .order_by(Episode.id.desc())
         )
@@ -276,6 +278,7 @@ class EpisodeRepository:
             .options(
                 selectinload(Episode.diagnostics),
                 selectinload(Episode.team_users),
+                selectinload(Episode.patient),  # datos del paciente
             )
             .order_by(Episode.id.desc())
         )
@@ -314,28 +317,61 @@ class EpisodeRepository:
         Crea un episodio y asigna doctores (user_ids) recibidos por turno en episode_user.
         No valida que el user.turn coincida con la clave del dict; sólo que el user exista.
         """
-        async with db.begin():
-            ep = Episode(**data)
+        # Generar numero_episodio incremental y defaults, igual que en create()
+        stmt_all_nums = select(Episode.numero_episodio)
+        result = await db.execute(stmt_all_nums)
+        all_nums_str = result.scalars().all()
+        max_num = 0
+        if all_nums_str:
+            try:
+                numeric_nums = [
+                    int(n) for n in all_nums_str if isinstance(n, str) and n.isdigit()
+                ]
+                if numeric_nums:
+                    max_num = max(numeric_nums)
+            except ValueError:
+                pass
 
-            # Asocia diagnósticos si vienen
-            if diagnostics_ids:
-                diags = (
-                    (
-                        await db.execute(
-                            select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
-                        )
+        new_episode_number = max_num + 1
+        data["numero_episodio"] = str(new_episode_number)
+
+        if "patient_id" not in data or data["patient_id"] is None:
+            raise ValueError(
+                "El campo 'patient_id' es obligatorio para crear un episodio y no fue entregado."
+            )
+
+        current_date = date.today()
+        if "fecha_ingreso" not in data or data["fecha_ingreso"] is None:
+            data["fecha_ingreso"] = current_date
+
+        if "mes_ingreso" not in data or data["mes_ingreso"] is None:
+            data["mes_ingreso"] = current_date.month
+
+        if "estado_del_caso" not in data or data["estado_del_caso"] is None:
+            data["estado_del_caso"] = "Abierto"
+
+        ep = Episode(**data)
+
+        # Asocia diagnósticos si vienen
+        if diagnostics_ids:
+            diags = (
+                (
+                    await db.execute(
+                        select(Diagnostic).where(Diagnostic.id.in_(diagnostics_ids))
                     )
-                    .scalars()
-                    .all()
                 )
-                ep.diagnostics = diags
+                .scalars()
+                .all()
+            )
+            ep.diagnostics = diags
 
-            db.add(ep)
-            await db.flush()  # para tener ep.id
+        db.add(ep)
+        try:
+            # flush para obtener ep.id antes de insertar en tabla asociación
+            await db.flush()
 
             # Asigna doctores si vienen
             if doctors_by_turn:
-                # quedarnos con valores (user_ids) válidos y únicos
                 user_ids = sorted({uid for uid in doctors_by_turn.values() if uid})
                 if user_ids:
                     existing_ids = (
@@ -350,6 +386,11 @@ class EpisodeRepository:
                         ]
                         await db.execute(insert(episode_user), values)
 
+            await db.commit()
+        except IntegrityError as e:
+            await db.rollback()
+            raise e
+
         # refrescamos relaciones útiles para la respuesta
-        await db.refresh(ep, attribute_names=["diagnostics", "team_users"])
+        await db.refresh(ep, attribute_names=["diagnostics", "team_users", "patient"])
         return ep

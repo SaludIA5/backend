@@ -23,3 +23,11 @@ share/python-wheels/
 .installed.cfg
 *.egg
 .env
+
+# testing artifacts
+.coverage
+htmlcov/
+pytest.cache/
+.pytest_cache/
+*.db
+*.sqlite
