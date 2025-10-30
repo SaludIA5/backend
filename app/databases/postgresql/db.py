@@ -25,7 +25,10 @@ def get_async_session_local():
     global _AsyncSessionLocal
     if _AsyncSessionLocal is None:
         _AsyncSessionLocal = async_sessionmaker(
-            autocommit=False, autoflush=False, bind=get_engine()
+            autocommit=False,
+            autoflush=False,
+            expire_on_commit=False,
+            bind=get_engine(),
         )
     return _AsyncSessionLocal
 

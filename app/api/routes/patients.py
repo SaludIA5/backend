@@ -14,6 +14,8 @@ from app.schemas import (
     PatientPage,
     PatientPageMeta,
     PatientUpdate,
+    PatientWithEpisodeCreate,
+    PatientWithEpisodeResponse,
     UserOut,
 )
 from app.services.auth_service import (
@@ -42,6 +44,71 @@ async def create_patient(
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="RUT ya registrado")
+
+
+# CREATE PATIENT WITH EPISODE
+@router.post(
+    "/with-episode",
+    response_model=PatientWithEpisodeResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_patient_with_episode(
+    payload: PatientWithEpisodeCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_medical_role)],
+):
+    """
+    Create a patient and an empty episode with doctor assignments by turn.
+
+    This endpoint creates:
+    1. A new patient with the provided information
+    2. An empty episode for that patient
+    3. Assigns doctors to the episode based on the turn mapping
+
+    The episode will have minimal required fields filled automatically.
+    """
+    try:
+        # Create the patient
+        patient = await PatientRepository.create(
+            db, name=payload.name, rut=payload.rut, age=payload.age
+        )
+
+        # Create empty episode data with only required fields
+        episode_data = {
+            "patient_id": patient.id,
+            "estado_del_caso": "Abierto",  # Default status
+        }
+
+        # Create episode with doctor assignments
+        episode = await EpisodeRepository.create_with_team(
+            db, data=episode_data, doctors_by_turn=payload.doctors
+        )
+
+        # Get assigned doctors for response
+        assigned_doctors = []
+        if hasattr(episode, "team_users") and episode.team_users:
+            assigned_doctors = [
+                UserOut.model_validate(user) for user in episode.team_users
+            ]
+
+        return PatientWithEpisodeResponse(
+            patient=PatientOut.model_validate(patient),
+            episode_id=episode.id,
+            episode_number=episode.numero_episodio,
+            assigned_doctors=assigned_doctors,
+        )
+
+    except IntegrityError as e:
+        if "rut" in str(e).lower():
+            raise HTTPException(status_code=409, detail="RUT ya registrado")
+        elif "numero_episodio" in str(e).lower():
+            raise HTTPException(status_code=409, detail="Error al crear episodio")
+        else:
+            raise HTTPException(
+                status_code=409, detail="Error de integridad en la base de datos"
+            )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # LIST
