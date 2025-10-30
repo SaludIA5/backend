@@ -4,7 +4,6 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 def train_random_forest_model() -> None:
-
     datasets, features, _ = prep.preprocessing_initial_data(
         "initial_data.xlsx", "initial_data_cleaned.csv"
     )

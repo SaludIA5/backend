@@ -1,6 +1,6 @@
 FROM python:3.11
 
-RUN pip install poetry
+RUN pip install "poetry>=2.0.1,<3.0.0"
 RUN poetry config virtualenvs.create false
 
 WORKDIR /

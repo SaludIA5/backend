@@ -12,6 +12,8 @@ from app.core.config import settings
 from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import User
 from app.schemas import LoginRequest, Token
+from app.schemas.user import UserOut
+from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -78,3 +80,11 @@ async def login(
 async def logout(response: Response):
     response.delete_cookie("access_token", path="/")
     return None
+
+
+@router.get("/me", response_model=UserOut)
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
+    """
+    Obtiene el usuario actualmente autenticado.
+    """
+    return current_user

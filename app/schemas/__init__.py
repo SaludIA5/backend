@@ -9,6 +9,7 @@ from .diagnostic import (
 from .episode import (
     EpisodeCreate,
     EpisodeOut,
+    EpisodeOutWithPatient,
     EpisodePage,
     EpisodePageMeta,
     EpisodeUpdate,
@@ -22,6 +23,8 @@ from .patient import (
     PatientPage,
     PatientPageMeta,
     PatientUpdate,
+    PatientWithEpisodeCreate,
+    PatientWithEpisodeResponse,
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 from .validation import ValidateEpisodeRequest
@@ -32,6 +35,8 @@ __all__ = [
     "PatientOut",
     "PatientPage",
     "PatientPageMeta",
+    "PatientWithEpisodeCreate",
+    "PatientWithEpisodeResponse",
     "DiagnosticCreate",
     "DiagnosticUpdate",
     "DiagnosticOut",
@@ -40,6 +45,7 @@ __all__ = [
     "EpisodeCreate",
     "EpisodeUpdate",
     "EpisodeOut",
+    "EpisodeOutWithPatient",
     "EpisodePage",
     "EpisodePageMeta",
     "UserCreate",

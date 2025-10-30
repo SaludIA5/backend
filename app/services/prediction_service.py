@@ -41,6 +41,7 @@ class PredictionService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Medical role required to perform predictions",
             )
+
         # Select predictor based on model type
         if model_type == "random_forest":
             result = predict_rf(episode_data)
