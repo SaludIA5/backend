@@ -45,10 +45,9 @@ async def create_user(
             email=payload.email,
             rut=payload.rut,
             password=payload.password,
-            # Ignoramos flags del payload por seguridad:
             is_chief_doctor=payload.is_chief_doctor,
             is_doctor=payload.is_doctor,
-            turn=None,
+            turn=payload.turn if payload.turn is not None else None,
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Email ya registrado")
@@ -75,6 +74,22 @@ async def list_users(
             total_pages=_total_pages(total, page_size),
         ),
     )
+
+
+# BY TURN (requiere login)
+@router.get(
+    "/by-turn", response_model=Dict[str, List[UserOut]], status_code=status.HTTP_200_OK
+)
+async def list_people_grouped_by_turn(
+    db: Annotated[AsyncSession, Depends(get_db)],
+):
+    grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
+    return {
+        turn if turn in ["A", "B", "C"] else "Sin turno": [
+            UserOut.model_validate(u) for u in users
+        ]
+        for turn, users in grouped.items()
+    }
 
 
 # GET by ID (requiere login)

@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from passlib.hash import bcrypt
-from sqlalchemy import func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -133,14 +133,9 @@ class UserRepository:
         db: AsyncSession,
     ) -> dict[str, list[User]]:
         """
-        Devuelve doctores y jefes agrupados por turno.
-        Incluye usuarios con is_doctor=True OR is_chief_doctor=True.
+        Devuelve todos los usuarios agrupados por turno.
         """
-        stmt = (
-            select(User)
-            .where(or_(User.is_doctor.is_(True), User.is_chief_doctor.is_(True)))
-            .order_by(User.turn, User.is_chief_doctor.desc(), User.name)
-        )
+        stmt = select(User).order_by(User.turn, User.name)
         res = await db.execute(stmt)
         people = res.scalars().all()
 
