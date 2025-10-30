@@ -32,7 +32,6 @@ def define_patients_table():
 
 
 def upgrade():
-
     patients_table = define_patients_table()
     NUM_PATIENTS = 115
     seed_data = generate_patient_data(NUM_PATIENTS)
@@ -40,7 +39,6 @@ def upgrade():
 
 
 def downgrade():
-
     NUM_PATIENTS = 115
     ruts_to_delete = [data["rut"] for data in generate_patient_data(NUM_PATIENTS)]
 

@@ -135,7 +135,6 @@ def save_preprocessed_dataset(datasets: list, file_name: str) -> None:
 
 
 def preprocessing_initial_data(file_name: str, file_name_clean: str) -> pd.DataFrame:
-
     data_cleaner(file_name, file_name_clean)
     df = read_csv_file(file_name_clean)
 

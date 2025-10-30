@@ -26,9 +26,8 @@ def _total_pages(total: int, size: int) -> int:
 @router.get("/recommendations", response_model=RecommendationMetrics)
 async def get_recommendation_metrics(
     db: Annotated[AsyncSession, Depends(get_db)],
-    start_date: datetime | None = Query(
-        None, description="Fecha de inicio del período"
-    ),
+    start_date: datetime
+    | None = Query(None, description="Fecha de inicio del período"),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
     #  _current: Annotated[User, Depends(require_medical_role)] = None,
 ):
@@ -48,9 +47,8 @@ async def get_recommendation_metrics(
 @router.get("/validation-by-doctor", response_model=list[ValidationMetrics])
 async def get_validation_metrics_by_doctor(
     db: Annotated[AsyncSession, Depends(get_db)],
-    start_date: datetime | None = Query(
-        None, description="Fecha de inicio del período"
-    ),
+    start_date: datetime
+    | None = Query(None, description="Fecha de inicio del período"),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
     # _current: Annotated[User, Depends(require_medical_role)] = None,
 ):
@@ -70,9 +68,8 @@ async def get_validation_metrics_by_doctor(
 @router.get("/episodes", response_model=list[EpisodeMetrics])
 async def get_episode_metrics(
     db: Annotated[AsyncSession, Depends(get_db)],
-    start_date: datetime | None = Query(
-        None, description="Fecha de inicio del período"
-    ),
+    start_date: datetime
+    | None = Query(None, description="Fecha de inicio del período"),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
     limit: int = Query(
         100, ge=1, le=1000, description="Límite de episodios a retornar"
@@ -96,9 +93,8 @@ async def get_episode_metrics(
 @router.get("/summary", response_model=MetricsSummary)
 async def get_metrics_summary(
     db: Annotated[AsyncSession, Depends(get_db)],
-    start_date: datetime | None = Query(
-        None, description="Fecha de inicio del período"
-    ),
+    start_date: datetime
+    | None = Query(None, description="Fecha de inicio del período"),
     end_date: datetime | None = Query(None, description="Fecha de fin del período"),
     # _current: Annotated[User, Depends(require_medical_role)] = None,
 ):

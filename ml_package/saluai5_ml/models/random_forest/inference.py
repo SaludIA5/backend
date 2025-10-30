@@ -106,7 +106,6 @@ def preprocess_form_data(form_data: dict) -> dict:
 
 
 def fill_missing_values(form_data: dict) -> dict:
-
     mean_nc, mode_cc, mode_bc, diagnostic = get_representative_values_colums()
     for col in NUMERICAL_COLUMNS:
         if col in form_data.keys():
