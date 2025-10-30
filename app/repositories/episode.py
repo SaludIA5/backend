@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Dict, List, Optional, Tuple
 
-from sqlalchemy import func, insert, select, or_
+from sqlalchemy import func, insert, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
@@ -257,9 +257,12 @@ class EpisodeRepository:
             select(Episode)
             .join(episode_user, episode_user.c.episode_id == Episode.id)
             .join(User, User.id == episode_user.c.user_id)
-            .where(or_(User.is_doctor.is_(True), User.is_chief_doctor.is_(True)), User.turn == turn)
+            .where(
+                or_(User.is_doctor.is_(True), User.is_chief_doctor.is_(True)),
+                User.turn == turn,
+            )
             .options(
-                selectinload(Episode.diagnostics),  
+                selectinload(Episode.diagnostics),
                 selectinload(Episode.team_users),  # carga todo el equipo
                 selectinload(Episode.patient),  # datos del paciente
             )

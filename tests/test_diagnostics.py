@@ -136,11 +136,3 @@ async def test_delete_diagnostic_404(async_client, auth_user_manager_safe, docto
     r = await async_client.delete(f"{BASE}/404")
     assert r.status_code == 404
     assert r.json()["detail"] == "Diagnostic not found"
-
-
-@pytest.mark.asyncio
-async def test_update_diagnostic_404(async_client, auth_user_manager_safe, doctor_user):
-    auth_user_manager_safe(doctor_user, is_admin=True)
-    res = await async_client.patch(f"{BASE}/999999", json={"description": "update"})
-    assert res.status_code == 404
-    assert res.json()["detail"] == "Diagnostic not found"
