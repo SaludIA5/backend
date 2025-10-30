@@ -172,9 +172,9 @@ class MetricRepository:
             ) / total_with_validation
             acceptance_rate = accepted_recommendations / total_with_validation
         else:
-            precision = (
-                recall
-            ) = f1_score = accuracy = concordance_rate = acceptance_rate = 0.0
+            precision = recall = f1_score = accuracy = concordance_rate = (
+                acceptance_rate
+            ) = 0.0
 
         return RecommendationMetrics(
             total_recommendations=total_recommendations,
