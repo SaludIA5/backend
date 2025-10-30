@@ -68,24 +68,24 @@ async def predict_episode_pertinence(
                         .values(recomendacion_modelo=result.get("label"))
                     )
                     await db.commit()
-                    result[
-                        "update_episode"
-                    ] = f"Model recommendation added to the episode of id {episode_id}"
+                    result["update_episode"] = (
+                        f"Model recommendation added to the episode of id {episode_id}"
+                    )
                 else:
                     # Si no existe, no falla
-                    result[
-                        "update_episode"
-                    ] = f"Episode with id_episodio '{episode_id}' not found"
+                    result["update_episode"] = (
+                        f"Episode with id_episodio '{episode_id}' not found"
+                    )
 
             except SQLAlchemyError as e:
                 await db.rollback()
-                result[
-                    "update_episode"
-                ] = f"Could not update episode due to DB error: {str(e)}"
+                result["update_episode"] = (
+                    f"Could not update episode due to DB error: {str(e)}"
+                )
             except Exception as e:
-                result[
-                    "update_episode"
-                ] = f"Unexpected error updating episode: {str(e)}"
+                result["update_episode"] = (
+                    f"Unexpected error updating episode: {str(e)}"
+                )
 
             finally:
                 print(result)

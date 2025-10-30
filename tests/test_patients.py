@@ -1,10 +1,10 @@
-from types import SimpleNamespace
+# from types import SimpleNamespace
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.models import Patient
-from app.repositories import EpisodeRepository, PatientRepository
+from app.repositories import PatientRepository
 
 BASE = "/patients"
 
@@ -131,7 +131,8 @@ async def test_update_patient_conflict_rut_409(
     async_client, auth_user_manager_safe, doctor_user, db_session: AsyncSession
 ):
     auth_user_manager_safe(doctor_user, is_doctor=True)
-    p1 = await seed_patient(db_session, name="A1", rut="44.444.444-4")
+    # p1 = await seed_patient(db_session, name="A1", rut="44.444.444-4")
+    await seed_patient(db_session, name="A1", rut="44.444.444-4")
     p2 = await seed_patient(db_session, name="A2", rut="55.555.555-5")
     # intentar cambiar el rut de p2 al de p1
     r = await async_client.patch(f"{BASE}/{p2.id}", json={"rut": "44.444.444-4"})

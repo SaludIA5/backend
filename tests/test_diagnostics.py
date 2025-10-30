@@ -114,7 +114,8 @@ async def test_update_diagnostic_conflict_409(
     async_client, db_session: AsyncSession, auth_user_manager_safe, doctor_user
 ):
     auth_user_manager_safe(doctor_user, is_admin=True)
-    d1 = await seed_diag(db_session, "D00", "uno")
+    # d1 = await seed_diag(db_session, "D00", "uno")
+    await seed_diag(db_session, "D00", "uno")
     d2 = await seed_diag(db_session, "D01", "dos")
     r = await async_client.patch(f"{BASE}/{d2.id}", json={"cie_code": "D00"})
     assert r.status_code == 409
