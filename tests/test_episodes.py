@@ -1,7 +1,5 @@
 # from types import SimpleNamespace
 
-import pytest
-
 # from sqlalchemy.ext.asyncio import AsyncSession
 
 # from app.databases.postgresql.models import Episode

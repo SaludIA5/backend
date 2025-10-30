@@ -97,6 +97,9 @@ async def test_validate_episode_forbidden_impersonation_non_admin(
     make_episode_isolated,
     set_ai_recommendation_isolated,
 ):
+    doc_a = await create_user(
+        name="Doc A", email="a@example.com", rut="11111111K", is_doctor=True, turn="A"
+    )
     doc_b = await create_user(
         name="Doc B", email="b@example.com", rut="22222222K", is_doctor=True, turn="A"
     )
