@@ -55,6 +55,14 @@ dev = [
 [tool.poetry]
 package-mode = false
 
+[tool.poetry.group.dev.dependencies]
+httpx = "^0.28.1"
+pytest = "^8.4.2"
+pytest-cov = "^7.0.0"
+pytest-asyncio = "^1.2.0"
+aiosqlite = "^0.21.0"
+factory-boy = "^3.3.3"
+
 [tool.black]
 line-length = 88
 target-version = ['py310']

@@ -21,9 +21,7 @@ def generate_patient_data(num_patients: int = 115) -> List[Dict[str, Any]]:
     ruts_generados = set()
 
     for i in range(num_patients):
-
         while True:
-
             rut_base = random.randint(5_000_000, 25_000_000)
             rut_digito = random.choice("0123456789K")
 

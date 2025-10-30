@@ -4,7 +4,6 @@ from xgboost import XGBClassifier
 
 
 def train_xgboost_model() -> None:
-
     datasets, features, _ = prep.preprocessing_initial_data(
         "initial_data.xlsx", "initial_data_cleaned.csv"
     )

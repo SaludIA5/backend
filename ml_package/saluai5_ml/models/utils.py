@@ -38,7 +38,6 @@ def create_dataset_model_predictions(
 def calculate_metrics_and_confussion_matrix(
     model_folder: str, metrics_file: str, training_function: Callable[[], None]
 ) -> bool:
-
     metrics_file_exists = file_exists_in_parent_folder(metrics_file)
     parent_folder = Path(__file__).resolve().parent
     file_path = parent_folder / model_folder / "metrics" / metrics_file
