@@ -7,6 +7,7 @@ import pytest
 # from app.databases.postgresql.models import Episode
 # from app.repositories.episode import EpisodeRepository
 
+import pytest
 BASE = "/episodes"
 
 
