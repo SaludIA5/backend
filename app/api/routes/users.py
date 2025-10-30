@@ -17,22 +17,6 @@ def _total_pages(total: int, size: int) -> int:
     return (total + size - 1) // size if size else 1
 
 
-# BY TURN (requiere login)
-@router.get(
-    "/by-turn", response_model=Dict[str, List[UserOut]], status_code=status.HTTP_200_OK
-)
-async def list_people_grouped_by_turn(
-    db: Annotated[AsyncSession, Depends(get_db)],
-):
-    grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
-    return {
-        turn
-        if turn in ["A", "B", "C"]
-        else "Sin turno": [UserOut.model_validate(u) for u in users]
-        for turn, users in grouped.items()
-    }
-
-
 # SIGNUP (público) — fuerza roles en False para evitar escalamiento
 @router.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def create_user(
