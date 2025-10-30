@@ -184,6 +184,9 @@ async def test_update_user_409_email_duplicate(
     async_client, db_session: AsyncSession, auth_user_manager_safe, doctor_user
 ):
     auth_user_manager_safe(doctor_user, is_admin=True)
+
+    # u1 = await seed_user(db_session, name="A", email="a@ex.com", rut="77.777.777-7")
+    await seed_user(db_session, name="A", email="a@ex.com", rut="77.777.777-7")
     u2 = await seed_user(db_session, name="B", email="b@ex.com", rut="88.888.888-8")
 
     r = await async_client.patch(f"{BASE}/{u2.id}", json={"email": "a@ex.com"})
