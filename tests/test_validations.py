@@ -1,12 +1,9 @@
 import pytest
 from sqlalchemy import inspect
 
-# from app.api.routes.episodes import (
-#     chief_validate_episode,
-#     validate_episode,
-# )
-# from app.schemas.episode import EpisodeOut
-# from app.schemas.validation import ValidateEpisodeRequest
+from app.api.routes.episodes import chief_validate_episode, validate_episode
+from app.schemas.episode import EpisodeOut
+from app.schemas.validation import ValidateEpisodeRequest
 
 
 @pytest.mark.asyncio
@@ -77,8 +74,7 @@ async def test_validate_forbidden_for_non_doctor(
         is_chief_doctor=False,
     )
 
-    # safe_doc = auth_user_manager_safe(doctor_user, is_doctor=True, turn="A")
-    auth_user_manager_safe(doctor_user, is_doctor=True, turn="A")
+    safe_doc = auth_user_manager_safe(doctor_user, is_doctor=True, turn="A")
     patient_id = await make_patient_isolated()
     episode_id = await make_episode_isolated(patient_id)
     await set_ai_recommendation_isolated(episode_id)
@@ -107,8 +103,8 @@ async def test_validate_episode_forbidden_impersonation_non_admin(
     doc_b = await create_user(
         name="Doc B", email="b@example.com", rut="22222222K", is_doctor=True, turn="A"
     )
-    # safe_doc_a = auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
-    auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
+    safe_doc_a = auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
+
     patient_id = await make_patient_isolated()
     episode_id = await make_episode_isolated(patient_id)
     await set_ai_recommendation_isolated(episode_id)

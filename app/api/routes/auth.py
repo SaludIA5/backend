@@ -83,9 +83,7 @@ async def logout(response: Response):
 
 
 @router.get("/me", response_model=UserOut)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_user)]
-):
+async def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):
     """
     Obtiene el usuario actualmente autenticado.
     """

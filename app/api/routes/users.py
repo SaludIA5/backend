@@ -23,11 +23,12 @@ def _total_pages(total: int, size: int) -> int:
 )
 async def list_people_grouped_by_turn(
     db: Annotated[AsyncSession, Depends(get_db)],
-    _current: Annotated[User, Depends(get_current_user)] = None,
 ):
     grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
     return {
-        turn: [UserOut.model_validate(u) for u in users]
+        turn
+        if turn in ["A", "B", "C"]
+        else "Sin turno": [UserOut.model_validate(u) for u in users]
         for turn, users in grouped.items()
     }
 
