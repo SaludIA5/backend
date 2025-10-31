@@ -103,7 +103,7 @@ async def test_validate_episode_forbidden_impersonation_non_admin(
     doc_b = await create_user(
         name="Doc B", email="b@example.com", rut="22222222K", is_doctor=True, turn="A"
     )
-    # safe_doc_a = auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
+    auth_user_manager_safe(doc_a, is_doctor=True, turn="A")
     auth_user_manager_safe(doc_b, is_doctor=True, turn="A")
     patient_id = await make_patient_isolated()
     episode_id = await make_episode_isolated(patient_id)
