@@ -1,12 +1,11 @@
 # from types import SimpleNamespace
 
-import pytest
-
 # from sqlalchemy.ext.asyncio import AsyncSession
 
 # from app.databases.postgresql.models import Episode
 # from app.repositories.episode import EpisodeRepository
 
+import pytest
 
 BASE = "/episodes"
 
