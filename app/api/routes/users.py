@@ -70,9 +70,9 @@ async def list_people_grouped_by_turn(
 ):
     grouped = await UserRepository.group_doctors_and_chiefs_by_turn(db)
     return {
-        turn
-        if turn in ["A", "B", "C"]
-        else "Sin turno": [UserOut.model_validate(u) for u in users]
+        turn if turn in ["A", "B", "C"] else "Sin turno": [
+            UserOut.model_validate(u) for u in users
+        ]
         for turn, users in grouped.items()
     }
 
