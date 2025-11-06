@@ -61,18 +61,17 @@ async def login(
         is_chief_doctor=user.is_chief_doctor,
     )
 
-    # Cookie HttpOnly (ajusta secure/samesite según entorno)
+    is_production = settings.app_config.environment.lower() == "production"
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        secure=False,  # True en producción con HTTPS
-        samesite="lax",  # "none" si front y back están en dominios distintos + HTTPS
+        secure=is_production,
+        samesite="none" if is_production else "lax",
         max_age=60 * settings.security_config.access_token_expire_minutes,
         path="/",
     )
 
-    # También devolvemos el token por compatibilidad (clientes que usan header)
     return Token(
         access_token=token,
         is_doctor=user.is_doctor,
