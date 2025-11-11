@@ -3,7 +3,7 @@ from app.databases.postgresql.db import get_async_session_local
 from ml_package.saluai5_ml.training_pipeline.data_ingestion.loader import DataLoader
 from ml_package.saluai5_ml.training_pipeline.data_preparation.cleaner import DataCleaner
 # from ml_package.saluai5_ml.training_pipeline.data_preparation.encoder import DataEncoder
-# from ml_package.saluai5_ml.training_pipeline.data_preparation.splitter import DataSplitter
+from ml_package.saluai5_ml.training_pipeline.data_preparation.splitter import DataSplitter
 # from ml_package.saluai5_ml.training_pipeline.model_training.trainer import ModelTrainer
 # from ml_package.saluai5_ml.training_pipeline.model_training.evaluator import ModelEvaluator
 
@@ -17,30 +17,26 @@ class TrainingOrchestrator:
         self.config = config
         self.cleaner = DataCleaner()
         # self.encoder = DataEncoder()
-        # self.splitter = DataSplitter()
+        self.splitter = DataSplitter(train_size=0.8)
         # self.trainer = ModelTrainer(config)
         # self.evaluator = ModelEvaluator()
 
     async def run(self):
         """Ejecuta el flujo completo de entrenamiento."""
+
+        # Ingesta de datos
         AsyncSessionLocal = get_async_session_local()
-
         async with AsyncSessionLocal() as session:
-            loader = DataLoader(session)
-            data = await loader.fetch_all_episodes_df()
-
-        print(f"✅ Datos cargados: {len(data)} filas")
+            self.loader = DataLoader(session)
+            data = await self.loader.fetch_all_episodes_df()
 
         # Preprocesamiento
-        for i, valor in enumerate(data["diagnostics"]):
-            print(f"Fila {i}: {valor}")
+        data = self.cleaner.run_preprocessing(data)
 
-
+        # División de datos para entrenamiento y prueba
+        X_train, X_test, y_train, y_test = self.splitter.build_train_test_data(data)
 
         # data = self.encoder.encode(data)
-
-        # # División train/test
-        # X_train, X_test, y_train, y_test = self.splitter.split(data)
 
         # # Entrenamiento
         # model = self.trainer.train(X_train, y_train)

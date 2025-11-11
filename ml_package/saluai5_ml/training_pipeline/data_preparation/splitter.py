@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 class DataSplitter:
     
@@ -45,100 +46,35 @@ class DataSplitter:
         ]
     categorical_columns = ["tipo", "tipo_alerta_ugcc", "tipo_cama", "triage"]
     multicategorical_columns = ["diagnostics"]
-    target_column = "validacion"
+    target_column = ["validacion"]
     exclude_columns = ["id_episodio"]
     
     """
-    Se encarga del preprocesamiento de datos antes del entrenamiento o predicción.
-    - Limpieza de valores nulos
-    - Conversión de tipos
-    - Normalización y codificación
+    Se encarga de hacer el train/test split de los datos.
     """
+    def __init__(self, train_size: float = 0.8):
+        self.train_size = train_size
         
     def upload_data(self, df: pd.DataFrame) -> None:
+        """
+        Carga el dataframe a procesar.
+		"""
         self.data = df
-        self.data_columns = self.data.columns
 
-    def impute_binary_columns(self) -> None:
+    def build_train_test_data(self, df: pd.DataFrame)-> tuple[pd.DataFrame]:
         """
-        Imputa valores faltantes en columnas binarias usando la moda de cada columna.
-        Modifica self.data in-place (no retorna nada).
-        """
-        for col in self.binary_columns:
-            if col in self.data_columns:
-                self.data[col] = self.data[col].replace("", np.nan)
-                mode_value = self.data[col].mode(dropna=True)
-                mode_value = mode_value[0] if not mode_value.empty else False
-                self.data[col] = self.data[col].fillna(mode_value)
-
-
-    def impute_numerical_columns(self) -> None:
-        """
-        Imputa valores faltantes en columnas numéricas usando el promedio (mean) 
-        de cada columna. Modifica self.data in-place (no retorna nada).
-        """
-        for col in self.numerical_columns:
-            if col in self.data_columns:
-                self.data[col] = self.data[col].replace("", np.nan)
-                mean_value = self.data[col].mean(skipna=True)
-                if pd.isna(mean_value):
-                    mean_value = 0.0
-
-                self.data[col] = self.data[col].fillna(mean_value)
-
-    def impute_categorical_columns(self) -> None:
-        """
-        Imputa valores faltantes en columnas categóricas usando la moda 
-        (valor más frecuente) de cada columna.
-        Modifica self.data in-place (no retorna nada).
-        """
-        for col in self.categorical_columns:
-            if col in self.data_columns:
-                self.data[col] = self.data[col].replace("", np.nan)
-                mode_value = self.data[col].mode(dropna=True)
-                mode_value = mode_value[0] if not mode_value.empty else None
-                self.data[col] = self.data[col].fillna(mode_value)
-    
-    def impute_data(self) -> None:
-        """
-        Imputa valores faltantes en todas las columnas del dataset,
-        incluyendo binarias, numéricas y categóricas.
-        Modifica self.data in-place (no retorna nada).
-        """
-        self.impute_binary_columns()
-        self.impute_numerical_columns()
-        self.impute_categorical_columns()
-    
-    def transform_binary_columns(self) -> None:
-        """
-        Codifica columnas binarias a numérico (0/1).
-        """
-        for col in self.binary_columns:
-            if col in self.data_columns:
-                self.data[col] = self.data[col].apply(self.map_binary_value)
-
-    def map_binary_value(self, value):
-        """
-        Mapea valores binarios.
-        """
-        if value is None or (isinstance(value, float) and np.isnan(value)) or pd.isna(value):
-            return 0
-        if isinstance(value, str):
-            if value in ["SI", "Si", "Sí", "si", "sí", "True"]:
-                return 1
-            elif value in ["NO", "No", "no", "False", "None"]:
-                return 0
-        elif isinstance(value, bool):
-            return 1 if value else 0
-        
-        return 0
-    
-    def run_preprocessing(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Ejecuta el preprocesamiento completo de datos.
-        Retorna el DataFrame preprocesado.
-        """
+        Crea los copnjuntos de entrenamiento y testing para el modelo.
+		"""
         self.upload_data(df)
-        self.impute_data()
-        self.transform_binary_columns()
-        return self.data
+        features_columns = self.numerical_columns + self.categorical_columns + self.binary_columns + self.multicategorical_columns 
+        x = self.data[features_columns]
+        y = self.data[self.target_column] if isinstance(self.target_column, str) else self.data[self.target_column[0]]
+        x_train, x_test, y_train, y_test = train_test_split(
+			x, y, test_size = 1- self.train_size, random_state = 23, stratify = y
+		)
+        self.print_successful_operation(x_train, x_test)
+        return x_train, x_test, y_train, y_test
+    
+    def print_successful_operation(self, x_train, x_test) -> None:
+        """Imprime mensaje de exito"""
+        print(f"✅ Conjuntos de train/test creados: {len(x_train)} filas de entrenamiento y {len(x_test)} filas de testing")

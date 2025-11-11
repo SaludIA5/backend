@@ -105,7 +105,11 @@ class DataCleaner:
         """
         for col in self.multicategorical_columns:
             if col in self.data_columns:
-                self.data[col] = self.data[col].apply(lambda x: x if isinstance(x, list) and not pd.isna(x) else [])
+                self.data[col] = self.data[col].apply(
+                    lambda x: x if isinstance(x, list)
+                    else [] if x in [None, np.nan, "[]", "nan"] or pd.isna(x)
+                    else []
+                )
     
     def impute_data(self) -> None:
         """
@@ -150,4 +154,9 @@ class DataCleaner:
         self.upload_data(df)
         self.impute_data()
         self.transform_binary_columns()
+        self.print_successful_operation()
         return self.data
+    
+    def print_successful_operation(self) -> None:
+        """Imprime mensaje de exito"""
+        print(f"✅ Datos preprocesados: {len(self.data)} filas")

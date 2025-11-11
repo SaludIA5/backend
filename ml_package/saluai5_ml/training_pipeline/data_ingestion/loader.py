@@ -127,7 +127,12 @@ class DataLoader:
     async def fetch_all_episodes_df(self) -> pd.DataFrame:
         """Devuelve los episodios como pandas DataFrame."""
         rows = await self.fetch_all_episodes()
+        self.print_successful_operation(rows)
         return pd.DataFrame(rows)
+    
+    def print_successful_operation(self, data) -> None:
+        """Imprime mensaje de exito"""
+        print(f"✅ Datos cargados: {len(data)} filas")
 
 
 if __name__ == "__main__":
