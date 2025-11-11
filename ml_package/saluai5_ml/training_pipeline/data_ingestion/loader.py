@@ -22,9 +22,9 @@ class DataLoader:
             "cirugia_realizada", "cirugia_mismo_dia_ingreso", "hemodinamia",
             "hemodinamia_mismo_dia_ingreso", "endoscopia", "endoscopia_mismo_dia_ingreso",
             "dialisis", "trombolisis", "trombolisis_mismo_dia_ingreso", "pcr",
-            "hemoglobina", "creatinina", "nitrogeno_ureico", "sodio", "potasio",
-            "model_type", "dreo", "troponinas_alteradas", "ecg_alterado",
-            "rnm_protocolo_stroke", "dva", "transfusiones", "compromiso_conciencia",
+            "hemoglobina", "creatinina", "nitrogeno_ureico", "sodio", "potasio", "dreo", 
+            "troponinas_alteradas", "ecg_alterado", "rnm_protocolo_stroke", "dva", "transfusiones", 
+            "compromiso_conciencia",
         ]
     def __init__(self, session: AsyncSession):
         """
