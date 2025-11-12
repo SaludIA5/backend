@@ -2,7 +2,7 @@ import asyncio
 from app.databases.postgresql.db import get_async_session_local
 from ml_package.saluai5_ml.training_pipeline.data_ingestion.loader import DataLoader
 from ml_package.saluai5_ml.training_pipeline.data_preparation.cleaner import DataCleaner
-# from ml_package.saluai5_ml.training_pipeline.data_preparation.encoder import DataEncoder
+from ml_package.saluai5_ml.training_pipeline.data_preparation.encoder import DataEncoder
 from ml_package.saluai5_ml.training_pipeline.data_preparation.splitter import DataSplitter
 # from ml_package.saluai5_ml.training_pipeline.model_training.trainer import ModelTrainer
 # from ml_package.saluai5_ml.training_pipeline.model_training.evaluator import ModelEvaluator
@@ -16,7 +16,7 @@ class TrainingOrchestrator:
     def __init__(self, config):
         self.config = config
         self.cleaner = DataCleaner()
-        # self.encoder = DataEncoder()
+        self.encoder = DataEncoder()
         self.splitter = DataSplitter(train_size=0.8)
         # self.trainer = ModelTrainer(config)
         # self.evaluator = ModelEvaluator()
@@ -35,8 +35,9 @@ class TrainingOrchestrator:
 
         # División de datos para entrenamiento y prueba
         X_train, X_test, y_train, y_test = self.splitter.build_train_test_data(data)
-
-        # data = self.encoder.encode(data)
+        label_version = "v1"
+        X_train, X_test = self.encoder.encode([X_train, X_test], label_version)
+        
 
         # # Entrenamiento
         # model = self.trainer.train(X_train, y_train)

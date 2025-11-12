@@ -129,6 +129,11 @@ class DataCleaner:
         for col in self.binary_columns:
             if col in self.data_columns:
                 self.data[col] = self.data[col].apply(self.map_binary_value)
+    
+    def transform_triage_column(self) -> None:
+        """
+        Convierte la columna 'triage' a string."""
+        self.data["triage"] = self.data["triage"].apply(lambda x: "" if pd.isna(x) else str(int(x)) if isinstance(x, (float, int)) else str(x))
 
     def map_binary_value(self, value):
         """
@@ -153,6 +158,7 @@ class DataCleaner:
         """
         self.upload_data(df)
         self.impute_data()
+        self.transform_triage_column()
         self.transform_binary_columns()
         self.print_successful_operation()
         return self.data
