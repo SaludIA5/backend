@@ -62,19 +62,6 @@ class DataEncoder:
         """
 		Codifica columnas categóricas usando One-Hot Encoding.
 		"""
-        existing_cols = [c for c in self.categorical_columns if c in self.features_train.columns]
-        print(f"Columnas categóricas a codificar: {existing_cols}")
-        if not existing_cols:
-            print("⚠️ No se encontraron columnas categóricas para codificar.")
-            return
-        
-        print("Tipos de las columnas categóricas:")
-        print(self.features_train[self.categorical_columns].dtypes)
-
-        print("\nCantidad de valores únicos:")
-        for col in self.categorical_columns:
-            print(col, "→", self.features_train[col].nunique(), "valores únicos")
-            print(self.features_train[col].unique()[:10])
         categorical_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
         features_train_encoded = categorical_encoder.fit_transform(self.features_train[self.categorical_columns])
         features_test_encoded = categorical_encoder.transform(self.features_test[self.categorical_columns])
