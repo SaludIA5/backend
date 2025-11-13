@@ -28,8 +28,9 @@ class ModelTrainer:
             return RandomForestClassifier(n_estimators=100, max_depth=10, bootstrap=True, random_state=23)
         return RandomForestClassifier(**self.config)
 
-    def train_model(self) -> None:
+    def train_model(self, data: List[pd.DataFrame], version: str) -> None:
         """Entrena el modelo de machine learning clásico."""
+        self.upload_data(data, version)
         model = self.models_factory()
         model.fit(self.features_train, self.target_train)
         self.model_serializer(model, self.model_name)
