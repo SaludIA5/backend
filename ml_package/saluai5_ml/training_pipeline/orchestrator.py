@@ -1,4 +1,6 @@
 import asyncio
+import os
+import sys
 
 from app.databases.postgresql.db import get_async_session_local
 from ml_package.saluai5_ml.training_pipeline.data_ingestion.loader import DataLoader
@@ -18,12 +20,13 @@ class TrainingOrchestrator:
     Coordina el pipeline de entrenamiento completo.
     """
 
-    def __init__(self, config=None):
+    def __init__(self, stage, config=None):
+        self.stage = stage
         self.config = config
         self.cleaner = DataCleaner()
         self.encoder = DataEncoder()
         self.splitter = DataSplitter(train_size=0.8)
-        self.trainer = ModelTrainer(config)
+        self.trainer = ModelTrainer(self.stage, self.config)
         self.evaluator = ModelEvaluator()
 
     async def run(self):
@@ -76,13 +79,11 @@ class TrainingOrchestrator:
 
 # 👇 Ejecutar manualmente si se corre este archivo directo
 if __name__ == "__main__":
-    import os
-    import sys
 
     root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
     sys.path.insert(0, root_path)
 
-    config = {"model_name": "rf_model_v1"}
-    orchestrator = TrainingOrchestrator(config=None)
+    stage = "dev"
+    orchestrator = TrainingOrchestrator(stage=stage)
 
     asyncio.run(orchestrator.run())
