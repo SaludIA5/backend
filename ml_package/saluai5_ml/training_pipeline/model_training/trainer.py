@@ -12,7 +12,8 @@ class ModelTrainer:
     los datos preprocesados.
     """
 
-    def __init__(self, config=None):
+    def __init__(self, stage="dev", config=None):
+        self.stage = stage
         self.config = config
         self.model_name = "random_forest"
 
@@ -59,7 +60,8 @@ class ModelTrainer:
         """
         file_name = self.get_versioning_label()
         base_path = self.get_base_directory_package()
-        file_path = base_path / "models_repository" / file_name
+        folder_stage = "develop" if self.stage == "dev" else "production"
+        file_path = base_path / "models_repository" / folder_stage / file_name
         joblib.dump(model, file_path)
 
     def print_successful_operation(self) -> None:
