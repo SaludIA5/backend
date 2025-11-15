@@ -13,7 +13,7 @@ from ml_package.saluai5_ml.training_pipeline.model_training.evaluator import (
     ModelEvaluator,
 )
 from ml_package.saluai5_ml.training_pipeline.model_training.trainer import ModelTrainer
-
+from ml_package.saluai5_ml.training_pipeline.versioner import ModelVersioner
 
 class TrainingOrchestrator:
     """
@@ -28,6 +28,7 @@ class TrainingOrchestrator:
         self.splitter = DataSplitter(train_size=0.8)
         self.trainer = ModelTrainer(self.stage, self.config)
         self.evaluator = ModelEvaluator()
+        self.versioner = ModelVersioner(self.stage)
 
     async def run(self):
         """Ejecuta el flujo completo de entrenamiento."""
@@ -35,6 +36,7 @@ class TrainingOrchestrator:
         # Ingesta de datos
         AsyncSessionLocal = get_async_session_local()
         async with AsyncSessionLocal() as session:
+            new_version_label = await self.versioner.generate_new_version_label(session)
             self.loader = DataLoader(session)
             data = await self.loader.fetch_all_episodes_df()
 
@@ -45,31 +47,22 @@ class TrainingOrchestrator:
         X_train, X_test, y_train, y_test = self.splitter.build_train_test_data(data)
 
         # Codificación de datos
-        label_version = "v1"
-        X_train, X_test = self.encoder.encode([X_train, X_test], label_version)
+        X_train, X_test = self.encoder.encode([X_train, X_test], new_version_label)
 
         # Entrenamiento
-        model = self.trainer.train_model([X_train, y_train], label_version)
+        model = self.trainer.train_model([X_train, y_train], new_version_label)
 
         # Evaluación
         model_metric = self.evaluator.evaluate_model([X_test, y_test], model)
 
         # Registro de versiones
+        async with AsyncSessionLocal() as session:
+            new_model_version = await self.versioner.save_model_metrics(
+                session, model_metric, new_version_label
+            )
 
-    async def get_last_model_version(self):
-        """Obtiene la última versión entrenada hasta el momento"""
-        pass
-
-    async def generate_label_version(self):
-        """Genera una nueva etiqueta de versión para el modelo"""
-        pass
-
-    async def save_model_metrics(self, metrics: float, model_version: str):
-        """Se encarga de guardar las métricas del modelo en la base de datos"""
-        pass
-
-
-# 👇 Ejecutar manualmente si se corre este archivo directo
+        print(f"✅ Nueva versión de modelo registrada: {new_model_version.version} ({new_model_version.date})")
+        
 if __name__ == "__main__":
 
     root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
