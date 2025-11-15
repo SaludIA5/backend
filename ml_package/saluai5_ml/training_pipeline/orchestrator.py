@@ -24,7 +24,7 @@ class TrainingOrchestrator:
         self.stage = stage
         self.config = config
         self.cleaner = DataCleaner()
-        self.encoder = DataEncoder()
+        self.encoder = DataEncoder(self.stage)
         self.splitter = DataSplitter(train_size=0.8)
         self.trainer = ModelTrainer(self.stage, self.config)
         self.evaluator = ModelEvaluator()
@@ -52,29 +52,21 @@ class TrainingOrchestrator:
         model = self.trainer.train_model([X_train, y_train], label_version)
 
         # Evaluación
-        metrics = self.evaluator.evaluate_model([X_test, y_test], model)
-        print(metrics)
-        # # Guardar modelo
-        # self.trainer.save_model(model)
+        model_metric = self.evaluator.evaluate_model([X_test, y_test], model)
 
-        # print("✅ Entrenamiento completado con métricas:", metrics)
-        # return metrics
+        # Registro de versiones
 
     async def get_last_model_version(self):
         """Obtiene la última versión entrenada hasta el momento"""
-        await self.loader.close_session()
+        pass
 
     async def generate_label_version(self):
         """Genera una nueva etiqueta de versión para el modelo"""
-        last_version = await self.get_last_model_version()
-        if last_version is None:
-            return "v1"
-        version_number = int(last_version.strip("v")) + 1
-        return f"v{version_number}"
+        pass
 
     async def save_model_metrics(self, metrics: float, model_version: str):
         """Se encarga de guardar las métricas del modelo en la base de datos"""
-        await self.loader.close_session()
+        pass
 
 
 # 👇 Ejecutar manualmente si se corre este archivo directo

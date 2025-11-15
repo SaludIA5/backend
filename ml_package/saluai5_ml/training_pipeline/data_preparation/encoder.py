@@ -33,6 +33,8 @@ class DataEncoder:
     Se encarga de codificar variables categóricas, multicategóricas y
     normalizar los datos.
     """
+    def __init__(self, stage="dev"):
+        self.stage = stage
 
     def upload_data(self, data: List[pd.DataFrame], version: str) -> None:
         self.features_train = data[0]
@@ -57,7 +59,7 @@ class DataEncoder:
         """
         file_name = self.get_versioning_label(category)
         base_path = self.get_base_directory_package()
-        file_path = base_path / "encoders_repository" / file_name
+        file_path = base_path / "encoders_repository" / self.stage / file_name
         joblib.dump(encoder, file_path)
 
     def encode_categorical_columns(self) -> None:

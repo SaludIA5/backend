@@ -60,8 +60,7 @@ class ModelTrainer:
         """
         file_name = self.get_versioning_label()
         base_path = self.get_base_directory_package()
-        folder_stage = "develop" if self.stage == "dev" else "production"
-        file_path = base_path / "models_repository" / folder_stage / file_name
+        file_path = base_path / "models_repository" / self.stage / file_name
         joblib.dump(model, file_path)
 
     def print_successful_operation(self) -> None:

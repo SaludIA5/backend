@@ -25,15 +25,15 @@ class ModelEvaluator:
         y_true = self.target_test
         y_pred = self.model.predict(self.features_test)
         if self.metric == "f1_score":
-            return round(f1_score(y_true, y_pred, average="weighted"), 2)
+            return { "metric": self.metric, "value": round(f1_score(y_true, y_pred, average="weighted"), 2) }
 
     def evaluate_model(self, data: List[pd.DataFrame], model) -> None:
         """Ejecuta el proceso de evaluación del modelo."""
         self.upload_data(data, model)
-        metrics = self.calculate_metrics()
-        self.print_successful_operation(metrics)
-        return metrics
+        metric = self.calculate_metrics()
+        self.print_successful_operation(metric)
+        return metric
 
-    def print_successful_operation(self, metrics) -> None:
+    def print_successful_operation(self, metric) -> None:
         """Imprime mensaje de exito"""
-        print(f"✅ Modelo evaluado con métrica {self.metric}: {metrics * 100}%")
+        print(f"✅ Modelo evaluado: {metric}")
