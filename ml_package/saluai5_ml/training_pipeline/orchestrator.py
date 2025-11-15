@@ -61,8 +61,9 @@ class TrainingOrchestrator:
                 session, model_metric, new_version_label
             )
 
-        print(f"✅ Nueva versión de modelo registrada: {new_model_version.version} ({new_model_version.date})")
-        
+        print(f"✅ Nueva versión de modelo registrada: {new_model_version.version} ({new_model_version.trained_at})")
+        return new_model_version
+
 if __name__ == "__main__":
 
     root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))

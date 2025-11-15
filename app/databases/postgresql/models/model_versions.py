@@ -1,6 +1,6 @@
 from sqlalchemy import Boolean, Column, Date, Float, String
 
-from app.databases.postgresql.base import BaseModel
+from .base import BaseModel
 
 
 class ModelVersion(BaseModel):
