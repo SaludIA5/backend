@@ -13,7 +13,7 @@ from app.databases.postgresql.models import ModelVersion
 
 class ModelVersionRepository:
     
-    BASE_DIR = Path(__file__).resolve().parents[3]
+    BASE_DIR = Path(__file__).resolve().parents[2]
     BASE_ENCODERS_PATH = BASE_DIR / "ml_package" / "saluai5_ml" / "encoders_repository"
     BASE_MODELS_PATH = BASE_DIR / "ml_package" / "saluai5_ml" / "models_repository"
     
