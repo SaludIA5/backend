@@ -1,8 +1,3 @@
-import asyncio
-import os
-import sys
-
-from app.databases.postgresql.db import get_async_session_local
 from ml_package.saluai5_ml.training_pipeline.data_ingestion.loader import DataLoader
 from ml_package.saluai5_ml.training_pipeline.data_preparation.cleaner import DataCleaner
 from ml_package.saluai5_ml.training_pipeline.data_preparation.encoder import DataEncoder
@@ -30,15 +25,13 @@ class TrainingOrchestrator:
         self.evaluator = ModelEvaluator()
         self.versioner = ModelVersioner(self.stage)
 
-    async def run(self):
+    async def run(self, session):
         """Ejecuta el flujo completo de entrenamiento."""
 
         # Ingesta de datos
-        AsyncSessionLocal = get_async_session_local()
-        async with AsyncSessionLocal() as session:
-            new_version_label = await self.versioner.generate_new_version_label(session)
-            self.loader = DataLoader(session)
-            data = await self.loader.fetch_all_episodes_df()
+        new_version_label = await self.versioner.generate_new_version_label(session)
+        self.loader = DataLoader(session)
+        data = await self.loader.fetch_all_episodes_df()
 
         # Preprocesamiento
         data = self.cleaner.run_preprocessing(data)
@@ -56,20 +49,9 @@ class TrainingOrchestrator:
         model_metric = self.evaluator.evaluate_model([X_test, y_test], model)
 
         # Registro de versiones
-        async with AsyncSessionLocal() as session:
-            new_model_version = await self.versioner.save_model_metrics(
-                session, model_metric, new_version_label
-            )
+        new_model_version = await self.versioner.save_model_metrics(
+            session, model_metric, new_version_label
+        )
 
         print(f"✅ Nueva versión de modelo registrada: {new_model_version.version} ({new_model_version.trained_at})")
         return new_model_version
-
-if __name__ == "__main__":
-
-    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-    sys.path.insert(0, root_path)
-
-    stage = "dev"
-    orchestrator = TrainingOrchestrator(stage=stage)
-
-    asyncio.run(orchestrator.run())
