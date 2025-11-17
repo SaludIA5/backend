@@ -8,7 +8,7 @@ from app.databases.postgresql.models import User, ModelVersion
 from app.repositories.model_versions import ModelVersionRepository
 from app.services.auth_service import require_admin
 
-from app.schemas.model_versions import (
+from app.schemas.ml_model.versions import (
     ModelVersionCreate,
     ModelVersionOut,
     ModelVersionUpdate,
