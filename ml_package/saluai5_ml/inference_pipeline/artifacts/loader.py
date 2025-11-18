@@ -22,7 +22,7 @@ class ArtifactsLoader:
 		Carga los encoders de los datos
         """
         stage = self.version.split("_v")[0]
-        base_path = Path(__file__).resolve().parent
+        base_path = self.get_base_directory_package()
         encoders_path = base_path / "encoders_repository" / stage
         categorical_encoder_path = encoders_path / f"categorical/{self.version}.pkl"
         multilabel_encoder_path = encoders_path / f"multilabel/{self.version}.pkl"
@@ -37,7 +37,7 @@ class ArtifactsLoader:
 		Load the trained model from a file.
         """
         stage = self.version.split("_v")[0]
-        base_path = Path(__file__).resolve().parent
+        base_path = self.get_base_directory_package()
         model_path = base_path / "models_repository" / stage / f"{self.version}.pkl"
         model = joblib.load(model_path)
         return model

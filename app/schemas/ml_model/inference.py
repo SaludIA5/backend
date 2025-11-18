@@ -1,20 +1,14 @@
 """Schemas for prediction endpoints."""
 
-from typing import Literal, Optional, List
+from typing import Optional, List
 
 from pydantic import BaseModel, Field
 
 
 class InferenceRequest(BaseModel):
     """Request schema for episode prediction."""
-
-    # Model selection
-    model_type: Literal["random_forest", "xgboost"] = Field(
-        default="random_forest", description="Type of ML model to use for prediction"
-    )
-
     id_episodio: Optional[int] = None
-    numero_episodio: Optional[str] = None
+    stage: Optional[str] = None
     tipo: Optional[str] = None
     tipo_alerta_ugcc: Optional[str] = None
     diagnostics: Optional[List[str]] = None
@@ -49,7 +43,6 @@ class InferenceRequest(BaseModel):
     nitrogeno_ureico: Optional[float] = None
     sodio: Optional[float] = None
     potasio: Optional[float] = None
-    model_type: Optional[str] = None
     dreo: Optional[bool] = None
     troponinas_alteradas: Optional[bool] = None
     ecg_alterado: Optional[bool] = None
@@ -62,7 +55,7 @@ class InferenceRequest(BaseModel):
         json_schema_extra = {
             "example": {
                 "id_episodio": 0,
-                "numero_episodio": "0",
+                "stage": "prod",
                 "diagnostics": None,
                 "antecedentes_cardiaco": True,
                 "antecedentes_diabetes": True,
@@ -74,7 +67,6 @@ class InferenceRequest(BaseModel):
                 "frecuencia_respiratoria": 150,
                 "glasgow_score": 15,
                 "hemoglobina": None,
-                "model_type": "random_forest",
                 "nitrogeno_ureico": None,
                 "pcr": 80,
                 "potasio": 8,
@@ -104,7 +96,7 @@ class InferenceRequest(BaseModel):
                 "rnm_protocolo_stroke": True,
                 "dva": None,
                 "transfusiones": None,
-                "compromiso_conciencia": True,
+                "compromiso_conciencia": True
             }
         }
 
@@ -112,23 +104,19 @@ class InferenceRequest(BaseModel):
 class InferenceResponse(BaseModel):
     """Response schema for episode inference."""
 
-    inference: int = Field(
+    prediction: int = Field(
         ..., description="Inference class (0: NO PERTINENTE, 1: PERTINENTE)"
     )
     probability: float = Field(
         ..., ge=0.0, le=1.0, description="Inference probability/confidence"
     )
     label: str = Field(..., description="Human-readable label")
-    model: str = Field(..., description="Model type used for inference")
-    update_episode: Optional[str]
 
     class Config:
         json_schema_extra = {
             "example": {
                 "prediction": 1,
                 "probability": 0.87,
-                "label": "PERTINENTE",
-                "model": "random_forest",
-                "update_episode": "Model recommendation added to the episode '0'",
+                "label": "PERTINENTE"
             }
         }

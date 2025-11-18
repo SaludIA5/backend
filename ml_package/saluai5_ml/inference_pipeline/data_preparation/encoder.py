@@ -1,10 +1,4 @@
-from pathlib import Path
-from typing import List
-
-import joblib
 import pandas as pd
-from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
-
 
 class DataEncoder:
 
@@ -33,70 +27,32 @@ class DataEncoder:
     Se encarga de codificar variables categóricas, multicategóricas y
     normalizar los datos.
     """
-    def __init__(self, stage="dev"):
-        self.stage = stage
-
-    def upload_data(self, data: List[pd.DataFrame], version: str) -> None:
-        self.features_train = data[0]
-        self.features_test = data[1]
-        self.label_version = version
-
-    def get_base_directory_package(self) -> Path:
-        """
-        Obtiene el directorio base del proyecto.
-        """
-        return Path(__file__).resolve().parent.parent.parent
-
-    def get_versioning_label(self, category: str) -> None:
-        """
-        Crea una etiqueta de versión para los encoders.
-        """
-        return f"{category}/{self.label_version}.pkl"
-
-    def serialize_encoder(self, encoder, category: str) -> None:
-        """
-        Serializa el encoder en un archivo.
-        """
-        file_name = self.get_versioning_label(category)
-        base_path = self.get_base_directory_package()
-        file_path = base_path / "encoders_repository" / self.stage / file_name
-        joblib.dump(encoder, file_path)
+    def upload_data(self, data: pd.DataFrame, encoders: any, model: any) -> None:
+        self.data = data
+        self.model = model
+        self.categorical_encoder = encoders[0]
+        self.multilabel_encoder = encoders[1]
+        self.numerical_encoder = encoders[2]
 
     def encode_categorical_columns(self) -> None:
         """
         Codifica columnas categóricas usando One-Hot Encoding.
         """
-        categorical_encoder = OneHotEncoder(
-            sparse_output=False, handle_unknown="ignore"
+
+        data_encoded = self.categorical_encoder.transform(
+            self.data[self.categorical_columns]
         )
-        features_train_encoded = categorical_encoder.fit_transform(
-            self.features_train[self.categorical_columns]
+
+        data_ohe = pd.DataFrame(
+            data_encoded,
+            columns=self.categorical_encoder.get_feature_names_out(self.categorical_columns),
+            index=self.data.index,
         )
-        features_test_encoded = categorical_encoder.transform(
-            self.features_test[self.categorical_columns]
-        )
-        self.serialize_encoder(categorical_encoder, "categorical")
-        features_train_ohe = pd.DataFrame(
-            features_train_encoded,
-            columns=categorical_encoder.get_feature_names_out(self.categorical_columns),
-            index=self.features_train.index,
-        )
-        features_test_ohe = pd.DataFrame(
-            features_test_encoded,
-            columns=categorical_encoder.get_feature_names_out(self.categorical_columns),
-            index=self.features_test.index,
-        )
-        self.features_train = pd.concat(
+
+        self.data = pd.concat(
             [
-                self.features_train.drop(columns=self.categorical_columns),
-                features_train_ohe,
-            ],
-            axis=1,
-        )
-        self.features_test = pd.concat(
-            [
-                self.features_test.drop(columns=self.categorical_columns),
-                features_test_ohe,
+                self.data.drop(columns=self.categorical_columns),
+                data_ohe,
             ],
             axis=1,
         )
@@ -106,59 +62,35 @@ class DataEncoder:
         Codifica columnas multicategóricas usando Multi Label Encoder.
         """
         multicategorical_column = self.multicategorical_columns[0]
-        mlb_encoder = MultiLabelBinarizer()
-        encoded_train = mlb_encoder.fit_transform(
-            self.features_train[multicategorical_column]
-        )
-        encoded_test = mlb_encoder.transform(
-            self.features_test[multicategorical_column]
-        )
-        encoded_col_names = [
-            f"{multicategorical_column}_{cls}" for cls in mlb_encoder.classes_
-        ]
-        train_df = pd.DataFrame(
-            encoded_train, columns=encoded_col_names, index=self.features_train.index
-        )
-        test_df = pd.DataFrame(
-            encoded_test, columns=encoded_col_names, index=self.features_test.index
-        )
-        self.features_train = pd.concat(
-            [self.features_train.drop(columns=[multicategorical_column]), train_df],
-            axis=1,
-        )
-        self.features_test = pd.concat(
-            [self.features_test.drop(columns=[multicategorical_column]), test_df],
-            axis=1,
-        )
-        self.serialize_encoder(mlb_encoder, "multilabel")
+
+        encoded_data = self.multilabel_encoder.transform(self.data[multicategorical_column])
+        encoded_col_names = [f"{multicategorical_column}_{cls}" for cls in self.multilabel_encoder.classes_]
+
+        data_df = pd.DataFrame(encoded_data, columns=encoded_col_names, index=self.data.index)
+        self.data = pd.concat([self.data.drop(columns=[multicategorical_column]), data_df], axis=1,)
 
     def normalize_numerical_columns(self) -> None:
         """
         Aplica min max scaler a las columnas numericas.
         """
-        scaler = MinMaxScaler()
-        self.features_train[self.numerical_columns] = scaler.fit_transform(
-            self.features_train[self.numerical_columns]
-        )
-        self.features_test[self.numerical_columns] = scaler.transform(
-            self.features_test[self.numerical_columns]
-        )
-        self.serialize_encoder(scaler, "numerical")
+        self.data[self.numerical_columns] = self.numerical_encoder.transform(self.data[self.numerical_columns])
 
-    def encode(self, data: List[pd.DataFrame], version: str) -> pd.DataFrame:
+    def align_features(self):
+        expected_cols = list(self.model.feature_names_in_)
+        return self.data[expected_cols]
+
+    def encode(self, data: pd.DataFrame, artifacts: any) -> pd.DataFrame:
         """
-        Ejecuta el preprocesamiento completo de datos.
-        Retorna el DataFrame preprocesado.
+        Codifica y normaliza los datos.
         """
-        self.upload_data(data, version)
+        self.upload_data(data, artifacts["data_encoders"], artifacts["model"])
         self.encode_categorical_columns()
         self.normalize_numerical_columns()
         self.encode_multicategorical_columns()
         self.print_successful_operation()
-        return self.features_train, self.features_test
+        data_encoded = self.align_features()
+        return data_encoded
 
     def print_successful_operation(self) -> None:
         """Imprime mensaje de exito"""
-        print(
-            f"✅ Datos codificados: {len(self.features_train)} filas de entrenamiento y {len(self.features_test)} filas de testing"
-        )
+        print(f"✅ Datos codificados")

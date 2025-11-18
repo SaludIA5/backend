@@ -59,8 +59,22 @@ class DataCleaner:
     def upload_data(self, df_db: pd.DataFrame, df_request: pd.DataFrame, labels) -> None:
         self.data_db = df_db
         self.data_db_columns = self.data_db.columns
-        self.data_request = df_request
+        self.data_request = pd.DataFrame([df_request])
         self.labels = labels
+    
+    def filter_episode_columns(self) -> None:
+        """
+        Filtra las columnas del DataFrame de la base de datos para que solo
+        queden las relevantes para el modelo.
+        Modifica self.data_db in-place (no retorna nada).
+        """
+        relevant_columns = (
+            self.numerical_columns
+            + self.binary_columns
+            + self.categorical_columns
+            + self.multicategorical_columns
+        )
+        self.data_request = self.data_request[relevant_columns].copy()
 
     def impute_binary_columns(self) -> None:
         """
@@ -75,7 +89,11 @@ class DataCleaner:
 
                 if col in self.data_request.columns:
                     self.data_request[col] = self.data_request[col].replace(self.null_like_strings, np.nan)
-                    self.data_request[col] = self.data_request[col].fillna(mode_value)
+                    self.data_request[col] = (
+                        self.data_request[col]
+                        .fillna(mode_value)
+                        .infer_objects(copy=False)
+                    )
 
     def impute_numerical_columns(self) -> None:
         """
@@ -91,7 +109,11 @@ class DataCleaner:
 
                 if col in self.data_request.columns:
                     self.data_request[col] = self.data_request[col].replace(self.null_like_strings, np.nan)
-                    self.data_request[col] = self.data_request[col].fillna(mean_value)
+                    self.data_request[col] = (
+                        self.data_request[col]
+                        .fillna(mean_value)
+                        .infer_objects(copy=False)
+                    )
 
     def impute_categorical_columns(self) -> None:
         """
@@ -107,9 +129,13 @@ class DataCleaner:
                 
                 if col in self.data_request.columns:
                     self.data_request[col] = self.data_request[col].replace(self.null_like_strings, np.nan)
-                    self.data_request[col] = self.data_request[col].fillna(mode_value)
+                    self.data_request[col] = (
+                        self.data_request[col]
+                        .fillna(mode_value)
+                        .infer_objects(copy=False)
+                    )
                     if col in ["tipo", "tipo_alerta_ugcc"]:
-                        self.data_request[col] = self.data_request[col].upper()
+                        self.data_request[col] = self.data_request[col].astype("string").str.upper()
 
     def impute_multicategorical_columns(self) -> None:
         """
@@ -152,7 +178,7 @@ class DataCleaner:
         Codifica columnas binarias a numérico (0/1).
         """
         for col in self.binary_columns:
-            if col in self.data_request_columns:
+            if col in self.data_db_columns:
                 self.data_request[col] = self.data_request[col].apply(self.map_binary_value)
 
     def transform_triage_column(self) -> None:
@@ -192,6 +218,7 @@ class DataCleaner:
         Retorna el DataFrame preprocesado.
         """
         self.upload_data(data[0], data[1], label_classes)
+        self.filter_episode_columns()
         self.impute_data()
         self.transform_triage_column()
         self.transform_binary_columns()
