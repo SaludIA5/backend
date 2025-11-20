@@ -36,3 +36,11 @@ class ModelVersionOut(ModelVersionBase):
 
     class Config:
         from_attributes = True
+
+
+class ModelVersionSummary(BaseModel):
+    version: str
+    trained_at: date
+    metric: str
+    metric_value: float
+    active: bool

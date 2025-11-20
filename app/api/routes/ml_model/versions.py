@@ -10,6 +10,7 @@ from app.repositories.model_versions import ModelVersionRepository
 from app.schemas.ml_model.versions import (
     ModelVersionCreate,
     ModelVersionOut,
+    ModelVersionSummary,
     ModelVersionUpdate,
 )
 from app.services.auth_service import require_admin
@@ -135,3 +136,30 @@ async def delete_stage(
 
     await ModelVersionRepository.delete_by_stage(db, stage)
     return None
+
+
+@router.get("/prod/summary", response_model=List[ModelVersionSummary])
+async def list_prod_versions_summary(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[User, Depends(require_admin)],
+):
+    """
+    Retorna todas las versiones en producción con:
+    - version
+    - trained_at
+    - metric
+    - metric_value
+    - active
+    """
+    versions = await ModelVersionRepository.list_prod(db)
+
+    return [
+        ModelVersionSummary(
+            version=v.version,
+            trained_at=v.trained_at,
+            metric=v.metric,
+            metric_value=v.metric_value,
+            active=v.active,
+        )
+        for v in versions
+    ]
