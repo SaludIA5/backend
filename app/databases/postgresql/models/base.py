@@ -1,7 +1,8 @@
 from sqlalchemy import Column, DateTime, Integer
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.sql import func
 
-from app.databases.postgresql.base import Base
+Base = declarative_base()
 
 
 class BaseModel(Base):

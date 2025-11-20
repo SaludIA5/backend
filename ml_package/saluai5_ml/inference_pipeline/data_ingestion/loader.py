@@ -1,6 +1,3 @@
-import asyncio
-import os
-import sys
 from decimal import Decimal
 from typing import Any, Dict, List
 
@@ -59,8 +56,6 @@ class DataLoader:
         "compromiso_conciencia",
     ]
 
-    valid_labels = {"PERTINENTE", "NO PERTINENTE"}
-
     def __init__(self, session: AsyncSession):
         """
         Inicializa DataLoader con una sesión de base de datos.
@@ -78,18 +73,6 @@ class DataLoader:
             for alt in ("id_episodio", "id", "numero_episodio", "numero"):
                 if hasattr(obj, alt):
                     return getattr(obj, alt)
-        return None
-
-    def _clean_validacion_column(self, val):
-        """Normaliza la columna 'validacion'."""
-        if val is None:
-            return None
-
-        val = str(val).strip().upper()
-
-        if val in self.valid_labels:
-            return val
-
         return None
 
     async def fetch_all_episodes(self) -> List[Dict[str, Any]]:
@@ -120,16 +103,11 @@ class DataLoader:
                 val = self._get_attr_safe(ep, col)
                 if isinstance(val, Decimal):
                     val = float(val)
-                if col == "validacion":
-                    val = self._clean_validacion_column(val)
-
                 row[col] = val
 
             eid = self._get_attr_safe(ep, "id_episodio") or getattr(ep, "id", None)
             row["diagnostics"] = diagnostics_map.get(eid, [])
             out.append(row)
-
-        out = [r for r in out if r["validacion"] in self.valid_labels]
         return out
 
     def _extract_episode_ids(self, episodes: List[Episode]) -> List[int]:
@@ -186,26 +164,3 @@ class DataLoader:
     def print_successful_operation(self, data) -> None:
         """Imprime mensaje de exito"""
         print(f"✅ Datos cargados: {len(data)} filas")
-
-
-if __name__ == "__main__":
-
-    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../"))
-    sys.path.insert(0, root_path)
-
-    from app.databases.postgresql.db import get_async_session_local
-
-    async def main():
-        AsyncSessionLocal = get_async_session_local()
-
-        async with AsyncSessionLocal() as session:
-            data_loader = DataLoader(session)
-            episodes = await data_loader.fetch_all_episodes()
-            print(f"✓ Total episodes fetched: {len(episodes)}")
-            if episodes:
-                for ep in episodes:
-                    print(ep)
-            episodes_df = await data_loader.fetch_all_episodes_df()
-            print(episodes_df.head())
-
-    asyncio.run(main())

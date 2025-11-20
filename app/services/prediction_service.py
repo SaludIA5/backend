@@ -3,9 +3,11 @@
 from typing import Literal
 
 from fastapi import HTTPException, status
-from saluai5_ml import predict_rf, predict_xgb
 
 from app.databases.postgresql.models import User
+from ml_package.saluai5_ml.models.random_forest.inference import (
+    make_prediction as predict_rf,
+)
 
 
 class PredictionService:
@@ -45,8 +47,6 @@ class PredictionService:
         # Select predictor based on model type
         if model_type == "random_forest":
             result = predict_rf(episode_data)
-        elif model_type == "xgboost":
-            result = predict_xgb(episode_data)
         else:
             raise ValueError(f"Invalid model_type: {model_type}.'")
 
