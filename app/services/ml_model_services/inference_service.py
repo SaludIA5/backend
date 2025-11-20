@@ -1,10 +1,10 @@
 """Inference service for ML model inference."""
 
 from fastapi import HTTPException, status
-from app.databases.postgresql.db import get_async_session_local
 
-from ml_package.saluai5_ml.inference_pipeline.inference_engine import InferenceEngine
+from app.databases.postgresql.db import get_async_session_local
 from app.databases.postgresql.models import User
+from ml_package.saluai5_ml.inference_pipeline.inference_engine import InferenceEngine
 
 
 class InferenceService:
@@ -63,8 +63,7 @@ class InferenceService:
             except ValueError as e:
 
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=str(e)
+                    status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
                 )
 
             except Exception as e:

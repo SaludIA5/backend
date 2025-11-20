@@ -4,7 +4,7 @@ from typing import List
 import joblib
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
-import os
+
 
 class DataEncoder:
 
@@ -33,6 +33,7 @@ class DataEncoder:
     Se encarga de codificar variables categóricas, multicategóricas y
     normalizar los datos.
     """
+
     def __init__(self, stage="dev"):
         self.stage = stage
 
@@ -162,4 +163,3 @@ class DataEncoder:
         print(
             f"✅ Datos codificados: {len(self.features_train)} filas de entrenamiento y {len(self.features_test)} filas de testing"
         )
-

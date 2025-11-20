@@ -1,4 +1,3 @@
-from fastapi import APIRouter
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,12 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import Episode, User
-# from app.databases.postgresql.models import User
 from app.schemas.ml_model.inference import InferenceRequest, InferenceResponse
 from app.services.auth_service import require_medical_role
 from app.services.ml_model_services.inference_service import InferenceService
 
-router = APIRouter(prefix="/inference",tags=["ML Model - Inference"])
+router = APIRouter(prefix="/inference", tags=["ML Model - Inference"])
+
 
 @router.post("/", response_model=InferenceResponse, status_code=status.HTTP_200_OK)
 async def predict_episode_pertinence(
@@ -42,11 +41,11 @@ async def predict_episode_pertinence(
     """
     try:
 
-        episode_data = payload.model_dump(exclude={"id_episodio", "stage", "model_type", "numero_episodio"})
+        episode_data = payload.model_dump(
+            exclude={"id_episodio", "stage", "model_type", "numero_episodio"}
+        )
         result = await InferenceService.predict_episode_pertinence(
-            episode_data=episode_data,
-            current_user=current_user,
-            stage=payload.stage
+            episode_data=episode_data, current_user=current_user, stage=payload.stage
         )
 
         episode_id = payload.id_episodio
@@ -64,7 +63,7 @@ async def predict_episode_pertinence(
                         .values(recomendacion_modelo=result.get("label"))
                     )
                     await db.commit()
-                except:
+                except SQLAlchemyError:
                     await db.rollback()
                     raise
         print(result)

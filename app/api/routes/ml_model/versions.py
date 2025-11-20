@@ -1,20 +1,21 @@
 from typing import Annotated, List
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
-from app.databases.postgresql.models import User, ModelVersion
+from app.databases.postgresql.models import User
 from app.repositories.model_versions import ModelVersionRepository
-from app.services.auth_service import require_admin
-
 from app.schemas.ml_model.versions import (
     ModelVersionCreate,
     ModelVersionOut,
     ModelVersionUpdate,
 )
+from app.services.auth_service import require_admin
 
 router = APIRouter(prefix="/versions", tags=["ML Model - Versions"])
+
 
 @router.post("/", response_model=ModelVersionOut, status_code=201)
 async def create_model_version(
@@ -35,12 +36,14 @@ async def create_model_version(
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Version already exists")
 
+
 @router.get("/", response_model=List[ModelVersionOut])
 async def list_all_versions(
     db: Annotated[AsyncSession, Depends(get_db)],
     _: Annotated[User, Depends(require_admin)],
 ):
     return await ModelVersionRepository.list_all(db)
+
 
 @router.get("/stage/{stage}", response_model=List[ModelVersionOut])
 async def list_versions_by_stage(
@@ -53,6 +56,7 @@ async def list_versions_by_stage(
 
     return await ModelVersionRepository.list_by_stage(db, stage)
 
+
 @router.get("/{version}", response_model=ModelVersionOut)
 async def get_version(
     version: str,
@@ -64,6 +68,7 @@ async def get_version(
         raise HTTPException(status_code=404, detail="Version not found")
     return obj
 
+
 @router.patch("/{version}", response_model=ModelVersionOut)
 async def update_version(
     version: str,
@@ -74,7 +79,7 @@ async def update_version(
     instance = await ModelVersionRepository.get_by_version(db, version)
     if not instance:
         raise HTTPException(status_code=404, detail="Version not found")
-    
+
     try:
         return await ModelVersionRepository.update_partial(
             db,
@@ -83,7 +88,8 @@ async def update_version(
         )
     except IntegrityError:
         raise HTTPException(status_code=409, detail="Integrity error")
-    
+
+
 @router.post("/{version}/activate", response_model=ModelVersionOut)
 async def activate_version(
     version: str,
@@ -97,11 +103,12 @@ async def activate_version(
     # desactivar todas las del mismo stage
     versions = await ModelVersionRepository.list_by_stage(db, instance.stage)
     for mv in versions:
-        mv.active = (mv.version == version)
+        mv.active = mv.version == version
 
     await db.commit()
     await db.refresh(instance)
     return instance
+
 
 @router.delete("/{version}", status_code=204)
 async def delete_version(
@@ -115,6 +122,7 @@ async def delete_version(
 
     await ModelVersionRepository.delete_by_version(db, version)
     return None
+
 
 @router.delete("/stage/{stage}", status_code=204)
 async def delete_stage(

@@ -1,4 +1,5 @@
 import asyncio
+
 from app.databases.postgresql.db import get_async_session_local
 from ml_package.saluai5_ml.training_pipeline.orchestrator import TrainingOrchestrator
 
@@ -23,6 +24,7 @@ class TrainingService:
             result = await self.orchestrator.run(session)
 
         return result
+
 
 if __name__ == "__main__":
     import sys

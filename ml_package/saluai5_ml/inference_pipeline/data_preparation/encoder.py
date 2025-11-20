@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class DataEncoder:
 
     numerical_columns = [
@@ -27,6 +28,7 @@ class DataEncoder:
     Se encarga de codificar variables categóricas, multicategóricas y
     normalizar los datos.
     """
+
     def upload_data(self, data: pd.DataFrame, encoders: any, model: any) -> None:
         self.data = data
         self.model = model
@@ -45,7 +47,9 @@ class DataEncoder:
 
         data_ohe = pd.DataFrame(
             data_encoded,
-            columns=self.categorical_encoder.get_feature_names_out(self.categorical_columns),
+            columns=self.categorical_encoder.get_feature_names_out(
+                self.categorical_columns
+            ),
             index=self.data.index,
         )
 
@@ -63,17 +67,29 @@ class DataEncoder:
         """
         multicategorical_column = self.multicategorical_columns[0]
 
-        encoded_data = self.multilabel_encoder.transform(self.data[multicategorical_column])
-        encoded_col_names = [f"{multicategorical_column}_{cls}" for cls in self.multilabel_encoder.classes_]
+        encoded_data = self.multilabel_encoder.transform(
+            self.data[multicategorical_column]
+        )
+        encoded_col_names = [
+            f"{multicategorical_column}_{cls}"
+            for cls in self.multilabel_encoder.classes_
+        ]
 
-        data_df = pd.DataFrame(encoded_data, columns=encoded_col_names, index=self.data.index)
-        self.data = pd.concat([self.data.drop(columns=[multicategorical_column]), data_df], axis=1,)
+        data_df = pd.DataFrame(
+            encoded_data, columns=encoded_col_names, index=self.data.index
+        )
+        self.data = pd.concat(
+            [self.data.drop(columns=[multicategorical_column]), data_df],
+            axis=1,
+        )
 
     def normalize_numerical_columns(self) -> None:
         """
         Aplica min max scaler a las columnas numericas.
         """
-        self.data[self.numerical_columns] = self.numerical_encoder.transform(self.data[self.numerical_columns])
+        self.data[self.numerical_columns] = self.numerical_encoder.transform(
+            self.data[self.numerical_columns]
+        )
 
     def align_features(self):
         expected_cols = list(self.model.feature_names_in_)
@@ -93,4 +109,4 @@ class DataEncoder:
 
     def print_successful_operation(self) -> None:
         """Imprime mensaje de exito"""
-        print(f"✅ Datos codificados")
+        print("✅ Datos codificados")

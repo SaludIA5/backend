@@ -1,14 +1,14 @@
 from typing import List, Optional
-from sqlalchemy import select, func, delete
+
+from sqlalchemy import Integer, delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import Integer
 
 from app.databases.postgresql.models import ModelVersion
 
 
 class ModelVersionRepository:
-    
+
     @staticmethod
     async def create(
         db: AsyncSession,
@@ -37,21 +37,22 @@ class ModelVersionRepository:
 
         await db.refresh(instance)
         return instance
-    
+
     @staticmethod
     async def get_by_version(db: AsyncSession, version: str) -> Optional[ModelVersion]:
         res = await db.execute(
             select(ModelVersion).where(ModelVersion.version == version)
         )
         return res.scalar_one_or_none()
+
     @staticmethod
-    async def get_active_version_for_stage(db: AsyncSession, stage: str) -> Optional[ModelVersion]:
-        stmt = (select(ModelVersion)
-        .where(
-            ModelVersion.stage == stage,
-            ModelVersion.active == True
-        )
-        .limit(1)
+    async def get_active_version_for_stage(
+        db: AsyncSession, stage: str
+    ) -> Optional[ModelVersion]:
+        stmt = (
+            select(ModelVersion)
+            .where(ModelVersion.stage == stage, ModelVersion.active.is_(True))
+            .limit(1)
         )
         res = await db.execute(stmt)
         return res.scalar_one_or_none()
@@ -88,8 +89,7 @@ class ModelVersionRepository:
             .where(ModelVersion.stage == stage)
             .order_by(
                 func.cast(
-                    func.split_part(ModelVersion.version, "_v", 2), 
-                    Integer
+                    func.split_part(ModelVersion.version, "_v", 2), Integer
                 ).desc()
             )
             .limit(1)
@@ -150,9 +150,11 @@ class ModelVersionRepository:
         if len(remaining) < 1:
             return
 
-        best = sorted(remaining, key=lambda mv: (mv.metric_value, mv.trained_at), reverse=True)[0]
+        best = sorted(
+            remaining, key=lambda mv: (mv.metric_value, mv.trained_at), reverse=True
+        )[0]
         for mv in remaining:
-            mv.active = (mv.id == best.id)
+            mv.active = mv.id == best.id
 
         await db.commit()
 

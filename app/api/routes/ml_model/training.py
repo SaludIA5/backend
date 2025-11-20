@@ -1,12 +1,13 @@
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.databases.postgresql.models import User
 from app.services.auth_service import require_admin
-
 from app.services.ml_model_services.training_service import TrainingService
 
 router = APIRouter(prefix="/training", tags=["ML Model - Training"])
+
 
 @router.post("/{stage}", status_code=status.HTTP_200_OK)
 async def trigger_training(

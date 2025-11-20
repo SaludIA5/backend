@@ -3,9 +3,11 @@
 from typing import Literal
 
 from fastapi import HTTPException, status
-from ml_package.saluai5_ml.models.random_forest.inference import make_prediction as predict_rf
 
 from app.databases.postgresql.models import User
+from ml_package.saluai5_ml.models.random_forest.inference import (
+    make_prediction as predict_rf,
+)
 
 
 class PredictionService:

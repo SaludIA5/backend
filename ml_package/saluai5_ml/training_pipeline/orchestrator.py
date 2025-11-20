@@ -10,6 +10,7 @@ from ml_package.saluai5_ml.training_pipeline.model_training.evaluator import (
 from ml_package.saluai5_ml.training_pipeline.model_training.trainer import ModelTrainer
 from ml_package.saluai5_ml.training_pipeline.versioner import ModelVersioner
 
+
 class TrainingOrchestrator:
     """
     Coordina el pipeline de entrenamiento completo.
@@ -53,5 +54,7 @@ class TrainingOrchestrator:
             session, model_metric, new_version_label
         )
 
-        print(f"✅ Nueva versión de modelo registrada: {new_model_version.version} ({new_model_version.trained_at})")
+        print(
+            f"✅ Nueva versión de modelo registrada: {new_model_version.version} ({new_model_version.trained_at})"
+        )
         return new_model_version

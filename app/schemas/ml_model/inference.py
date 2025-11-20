@@ -1,12 +1,13 @@
 """Schemas for prediction endpoints."""
 
-from typing import Optional, List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
 
 class InferenceRequest(BaseModel):
     """Request schema for episode prediction."""
+
     id_episodio: Optional[int] = None
     stage: Optional[str] = None
     tipo: Optional[str] = None
@@ -96,7 +97,7 @@ class InferenceRequest(BaseModel):
                 "rnm_protocolo_stroke": True,
                 "dva": None,
                 "transfusiones": None,
-                "compromiso_conciencia": True
+                "compromiso_conciencia": True,
             }
         }
 
@@ -114,9 +115,5 @@ class InferenceResponse(BaseModel):
 
     class Config:
         json_schema_extra = {
-            "example": {
-                "prediction": 1,
-                "probability": 0.87,
-                "label": "PERTINENTE"
-            }
+            "example": {"prediction": 1, "probability": 0.87, "label": "PERTINENTE"}
         }

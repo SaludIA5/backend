@@ -79,12 +79,12 @@ class DataLoader:
                 if hasattr(obj, alt):
                     return getattr(obj, alt)
         return None
-    
+
     def _clean_validacion_column(self, val):
         """Normaliza la columna 'validacion'."""
         if val is None:
             return None
-        
+
         val = str(val).strip().upper()
 
         if val in self.valid_labels:
@@ -128,7 +128,7 @@ class DataLoader:
             eid = self._get_attr_safe(ep, "id_episodio") or getattr(ep, "id", None)
             row["diagnostics"] = diagnostics_map.get(eid, [])
             out.append(row)
-        
+
         out = [r for r in out if r["validacion"] in self.valid_labels]
         return out
 

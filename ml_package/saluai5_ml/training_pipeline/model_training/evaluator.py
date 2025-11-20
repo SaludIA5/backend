@@ -25,7 +25,10 @@ class ModelEvaluator:
         y_true = self.target_test
         y_pred = self.model.predict(self.features_test)
         if self.metric == "f1_score":
-            return { "metric": self.metric, "value": round(f1_score(y_true, y_pred, average="weighted"), 2) }
+            return {
+                "metric": self.metric,
+                "value": round(f1_score(y_true, y_pred, average="weighted"), 2),
+            }
 
     def evaluate_model(self, data: List[pd.DataFrame], model) -> None:
         """Ejecuta el proceso de evaluación del modelo."""

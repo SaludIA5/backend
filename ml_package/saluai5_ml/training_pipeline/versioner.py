@@ -1,6 +1,8 @@
 from datetime import date
-from typing import Dict, Any
+from typing import Any, Dict
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.repositories.model_versions import ModelVersionRepository
 
 
@@ -10,7 +12,9 @@ class ModelVersioner:
 
     async def get_last_version(self, db: AsyncSession):
         """Retorna el último ModelVersion para un stage."""
-        last_version = await ModelVersionRepository.get_latest_version_for_stage(db, self.stage)
+        last_version = await ModelVersionRepository.get_latest_version_for_stage(
+            db, self.stage
+        )
         return last_version
 
     async def generate_new_version_label(self, db: AsyncSession) -> str:
@@ -31,19 +35,21 @@ class ModelVersioner:
         versions = await ModelVersionRepository.list_by_stage(db, self.stage)
         if not versions:
             instance = await ModelVersionRepository.create(
-				db,
-				version=version,
-				stage=self.stage,
-				metric=metric_info["metric"],
-				metric_value=float(metric_info["value"]),
-				trained_at=date.today(),
-				active=True,
+                db,
+                version=version,
+                stage=self.stage,
+                metric=metric_info["metric"],
+                metric_value=float(metric_info["value"]),
+                trained_at=date.today(),
+                active=True,
             )
             return instance
 
         else:
-            
-            active_instance = await ModelVersionRepository.get_active_version_for_stage(db, self.stage)
+
+            active_instance = await ModelVersionRepository.get_active_version_for_stage(
+                db, self.stage
+            )
             if active_instance is None:
                 instance = await ModelVersionRepository.create(
                     db,
@@ -55,28 +61,30 @@ class ModelVersioner:
                     active=True,
                 )
                 return instance
-            
+
             if float(metric_info["value"]) >= active_instance.metric_value:
-                await ModelVersionRepository.update_partial(db, active_instance, active=False)
+                await ModelVersionRepository.update_partial(
+                    db, active_instance, active=False
+                )
                 instance = await ModelVersionRepository.create(
-					db,
-					version=version,
-					stage=self.stage,
-					metric=metric_info["metric"],
-					metric_value=float(metric_info["value"]),
-					trained_at=date.today(),
-					active=True,
-				)
+                    db,
+                    version=version,
+                    stage=self.stage,
+                    metric=metric_info["metric"],
+                    metric_value=float(metric_info["value"]),
+                    trained_at=date.today(),
+                    active=True,
+                )
                 return instance
-            
+
             else:
                 instance = await ModelVersionRepository.create(
-					db,
-					version=version,
-					stage=self.stage,
-					metric=metric_info["metric"],
-					metric_value=float(metric_info["value"]),
-					trained_at=date.today(),
-					active=False,
-				)
+                    db,
+                    version=version,
+                    stage=self.stage,
+                    metric=metric_info["metric"],
+                    metric_value=float(metric_info["value"]),
+                    trained_at=date.today(),
+                    active=False,
+                )
                 return instance

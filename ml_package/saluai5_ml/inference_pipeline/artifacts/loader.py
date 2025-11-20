@@ -1,5 +1,6 @@
-from typing import Dict
 from pathlib import Path
+from typing import Dict
+
 import joblib
 
 
@@ -10,16 +11,16 @@ class ArtifactsLoader:
         Inicializa Artifacts Loader con la version de los encoders a usar
         """
         self.version = version
-        
+
     def get_base_directory_package(self) -> Path:
         """
         Obtiene el directorio base del proyecto.
         """
         return Path(__file__).resolve().parent.parent.parent
-    
+
     def load_data_encoders(self) -> any:
         """
-		Carga los encoders de los datos
+        Carga los encoders de los datos
         """
         stage = self.version.split("_v")[0]
         base_path = self.get_base_directory_package()
@@ -34,18 +35,18 @@ class ArtifactsLoader:
 
     def load_ml_model(self) -> any:
         """
-		Load the trained model from a file.
+        Load the trained model from a file.
         """
         stage = self.version.split("_v")[0]
         base_path = self.get_base_directory_package()
         model_path = base_path / "models_repository" / stage / f"{self.version}.pkl"
         model = joblib.load(model_path)
         return model
-    
+
     def get_multilabel_classes(self, multilabel_encoder) -> set:
         """
-		Obtiene las clases del encoder multilabel
-		"""
+        Obtiene las clases del encoder multilabel
+        """
         return set(multilabel_encoder.classes_)
 
     def run(self) -> Dict:
@@ -54,7 +55,11 @@ class ArtifactsLoader:
         data_encoders = self.load_data_encoders()
         multilabel_classes = self.get_multilabel_classes(data_encoders[1])
         self.print_successful_operation()
-        return {"model": model, "data_encoders": data_encoders, "multilabel_classes": multilabel_classes}
+        return {
+            "model": model,
+            "data_encoders": data_encoders,
+            "multilabel_classes": multilabel_classes,
+        }
 
     def print_successful_operation(self) -> None:
         """Imprime mensaje de exito"""

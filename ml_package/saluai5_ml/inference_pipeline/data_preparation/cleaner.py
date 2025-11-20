@@ -56,12 +56,14 @@ class DataCleaner:
     - Normalización y codificación
     """
 
-    def upload_data(self, df_db: pd.DataFrame, df_request: pd.DataFrame, labels) -> None:
+    def upload_data(
+        self, df_db: pd.DataFrame, df_request: pd.DataFrame, labels
+    ) -> None:
         self.data_db = df_db
         self.data_db_columns = self.data_db.columns
         self.data_request = pd.DataFrame([df_request])
         self.labels = labels
-    
+
     def filter_episode_columns(self) -> None:
         """
         Filtra las columnas del DataFrame de la base de datos para que solo
@@ -88,7 +90,9 @@ class DataCleaner:
                 mode_value = mode_value[0] if not mode_value.empty else False
 
                 if col in self.data_request.columns:
-                    self.data_request[col] = self.data_request[col].replace(self.null_like_strings, np.nan)
+                    self.data_request[col] = self.data_request[col].replace(
+                        self.null_like_strings, np.nan
+                    )
                     self.data_request[col] = (
                         self.data_request[col]
                         .fillna(mode_value)
@@ -108,7 +112,9 @@ class DataCleaner:
                     mean_value = 0.0
 
                 if col in self.data_request.columns:
-                    self.data_request[col] = self.data_request[col].replace(self.null_like_strings, np.nan)
+                    self.data_request[col] = self.data_request[col].replace(
+                        self.null_like_strings, np.nan
+                    )
                     self.data_request[col] = (
                         self.data_request[col]
                         .fillna(mean_value)
@@ -126,16 +132,20 @@ class DataCleaner:
                 self.data_db[col] = self.data_db[col].replace("", np.nan)
                 mode_value = self.data_db[col].mode(dropna=True)
                 mode_value = mode_value[0] if not mode_value.empty else None
-                
+
                 if col in self.data_request.columns:
-                    self.data_request[col] = self.data_request[col].replace(self.null_like_strings, np.nan)
+                    self.data_request[col] = self.data_request[col].replace(
+                        self.null_like_strings, np.nan
+                    )
                     self.data_request[col] = (
                         self.data_request[col]
                         .fillna(mode_value)
                         .infer_objects(copy=False)
                     )
                     if col in ["tipo", "tipo_alerta_ugcc"]:
-                        self.data_request[col] = self.data_request[col].astype("string").str.upper()
+                        self.data_request[col] = (
+                            self.data_request[col].astype("string").str.upper()
+                        )
 
     def impute_multicategorical_columns(self) -> None:
         """
@@ -144,7 +154,9 @@ class DataCleaner:
         """
         for col in self.multicategorical_columns:
             if col in self.data_request.columns:
-                self.data_request[col] = self.data_request[col].apply(self.clean_multilabels)
+                self.data_request[col] = self.data_request[col].apply(
+                    self.clean_multilabels
+                )
 
     def clean_multilabels(self, labels):
         """
@@ -179,7 +191,9 @@ class DataCleaner:
         """
         for col in self.binary_columns:
             if col in self.data_db_columns:
-                self.data_request[col] = self.data_request[col].apply(self.map_binary_value)
+                self.data_request[col] = self.data_request[col].apply(
+                    self.map_binary_value
+                )
 
     def transform_triage_column(self) -> None:
         """
@@ -227,4 +241,4 @@ class DataCleaner:
 
     def print_successful_operation(self) -> None:
         """Imprime mensaje de exito"""
-        print(f"✅ Datos preprocesados")
+        print("✅ Datos preprocesados")
