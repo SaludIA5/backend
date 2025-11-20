@@ -52,21 +52,23 @@ class InferenceService:
                 'label': str,
             }
         """
-        # Validate permissions
         InferenceService._validate_user_permissions(current_user)
-
-        # Prepare inference engine
         engine = InferenceEngine(episode_data=episode_data, stage=stage)
-
-        # Create DB session as FastAPI would
         SessionLocal = get_async_session_local()
-
         async with SessionLocal() as session:
             try:
                 result = await engine.run(session)
                 return result
+
+            except ValueError as e:
+
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(e)
+                )
+
             except Exception as e:
                 raise HTTPException(
                     status_code=500,
-                    detail=f"Error during inference: {str(e)}",
+                    detail=f"Error durante la inferencia: {str(e)}",
                 )

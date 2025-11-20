@@ -44,8 +44,19 @@ class ModelVersioner:
         else:
             
             active_instance = await ModelVersionRepository.get_active_version_for_stage(db, self.stage)
-            metric_value_active_instance = active_instance.metric_value
-            if float(metric_info["value"]) >= metric_value_active_instance:
+            if active_instance is None:
+                instance = await ModelVersionRepository.create(
+                    db,
+                    version=version,
+                    stage=self.stage,
+                    metric=metric_info["metric"],
+                    metric_value=float(metric_info["value"]),
+                    trained_at=date.today(),
+                    active=True,
+                )
+                return instance
+            
+            if float(metric_info["value"]) >= active_instance.metric_value:
                 await ModelVersionRepository.update_partial(db, active_instance, active=False)
                 instance = await ModelVersionRepository.create(
 					db,
@@ -57,6 +68,7 @@ class ModelVersioner:
 					active=True,
 				)
                 return instance
+            
             else:
                 instance = await ModelVersionRepository.create(
 					db,

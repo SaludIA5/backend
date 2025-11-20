@@ -18,6 +18,10 @@ class InferenceEngine:
 
     async def run(self, session):
         """Ejecuta el flujo completo de inferencia."""
+
+        # Primero se checkea si hay versiones entrenadas
+        await self.check_trained_versions_stage(session)
+
         # Obtener versión activa del modelo
         active_version = await self.get_active_version(session)
 
@@ -40,10 +44,25 @@ class InferenceEngine:
         payload_prediction = self.predict_and_build_payload(artifacts["model"], episode_data_encoded)
         return payload_prediction
     
+    async def check_trained_versions_stage(self, session):
+        """Checkea si hay versiones entrenadas para cierta stage"""
+
+        instances = await ModelVersionRepository.list_by_stage(session, stage=self.stage)
+        if not instances:
+            raise ValueError(
+                f"No existen versiones entrenadas del modelo para el stage '{self.stage}'. "
+                "Entrena un modelo antes de hacer inferencia."
+            )
+    
     async def get_active_version(self, session):
         """Obtiene la versión activa del modelo para el stage configurado."""
 
         instance = await ModelVersionRepository.get_active_version_for_stage(session, stage=self.stage)
+        if instance is None:
+            raise ValueError(
+                f"No existe una versión activa del modelo para el stage '{self.stage}'. "
+                "Activa una versión antes de hacer inferencia."
+            )
         return str(instance.version)
     
     def predict_and_build_payload(self, model, df):

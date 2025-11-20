@@ -34,6 +34,8 @@ services:
       - ./tests:/tests
       - ./pytest.ini:/pytest.ini
       - ./.coveragerc:/.coveragerc
+      - ./ml_package/saluai5_ml/encoders_repository:/ml_package/saluai5_ml/encoders_repository
+      - ./ml_package/saluai5_ml/models_repository:/ml_package/saluai5_ml/models_repository
   
   postgresql_db:
     image: postgres:15

@@ -59,6 +59,8 @@ class DataLoader:
         "compromiso_conciencia",
     ]
 
+    valid_labels = {"PERTINENTE", "NO PERTINENTE"}
+
     def __init__(self, session: AsyncSession):
         """
         Inicializa DataLoader con una sesión de base de datos.
@@ -76,6 +78,18 @@ class DataLoader:
             for alt in ("id_episodio", "id", "numero_episodio", "numero"):
                 if hasattr(obj, alt):
                     return getattr(obj, alt)
+        return None
+    
+    def _clean_validacion_column(self, val):
+        """Normaliza la columna 'validacion'."""
+        if val is None:
+            return None
+        
+        val = str(val).strip().upper()
+
+        if val in self.valid_labels:
+            return val
+
         return None
 
     async def fetch_all_episodes(self) -> List[Dict[str, Any]]:
@@ -106,11 +120,16 @@ class DataLoader:
                 val = self._get_attr_safe(ep, col)
                 if isinstance(val, Decimal):
                     val = float(val)
+                if col == "validacion":
+                    val = self._clean_validacion_column(val)
+
                 row[col] = val
 
             eid = self._get_attr_safe(ep, "id_episodio") or getattr(ep, "id", None)
             row["diagnostics"] = diagnostics_map.get(eid, [])
             out.append(row)
+        
+        out = [r for r in out if r["validacion"] in self.valid_labels]
         return out
 
     def _extract_episode_ids(self, episodes: List[Episode]) -> List[int]:

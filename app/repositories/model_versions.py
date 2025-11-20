@@ -4,18 +4,10 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import Integer
 
-from pathlib import Path
-import shutil
-import os
-
 from app.databases.postgresql.models import ModelVersion
 
 
 class ModelVersionRepository:
-    
-    BASE_DIR = Path(__file__).resolve().parents[2]
-    BASE_ENCODERS_PATH = BASE_DIR / "ml_package" / "saluai5_ml" / "encoders_repository"
-    BASE_MODELS_PATH = BASE_DIR / "ml_package" / "saluai5_ml" / "models_repository"
     
     @staticmethod
     async def create(
@@ -139,14 +131,35 @@ class ModelVersionRepository:
 
     @staticmethod
     async def delete_by_version(db: AsyncSession, version: str) -> None:
+
+        instance = await ModelVersionRepository.get_by_version(db, version)
+        if not instance:
+            return
+
+        stage = instance.stage
+        was_active = instance.active
+
         await db.execute(delete(ModelVersion).where(ModelVersion.version == version))
+        await db.commit()
+
+        if not was_active:
+            return
+
+        remaining = await ModelVersionRepository.list_by_stage(db, stage)
+
+        if len(remaining) < 1:
+            return
+
+        best = sorted(remaining, key=lambda mv: (mv.metric_value, mv.trained_at), reverse=True)[0]
+        for mv in remaining:
+            mv.active = (mv.id == best.id)
+
         await db.commit()
 
     @staticmethod
     async def delete_by_stage(db: AsyncSession, stage: str) -> None:
         await db.execute(delete(ModelVersion).where(ModelVersion.stage == stage))
         await db.commit()
-        ModelVersionRepository._delete_stage_files(stage)
 
     @staticmethod
     async def delete_prod(db: AsyncSession) -> None:
@@ -155,32 +168,3 @@ class ModelVersionRepository:
     @staticmethod
     async def delete_dev(db: AsyncSession) -> None:
         await ModelVersionRepository.delete_by_stage(db, "dev")
-
-    @staticmethod
-    def _delete_stage_files(stage: str):
-        """
-        Elimina TODOS los archivos/dir de un stage dentro de ml_package.
-        """
-
-        encoder_paths = [
-            ModelVersionRepository.BASE_ENCODERS_PATH / stage / "categorical",
-            ModelVersionRepository.BASE_ENCODERS_PATH / stage / "numerical",
-            ModelVersionRepository.BASE_ENCODERS_PATH / stage / "multilabel",
-        ]
-
-        model_path = ModelVersionRepository.BASE_MODELS_PATH / stage
-
-        # eliminar encoders
-        for path in encoder_paths:
-            if path.exists():
-                shutil.rmtree(path)
-
-        # eliminar modelos
-        if model_path.exists():
-            shutil.rmtree(model_path)
-
-        # recrear carpetas vacías
-        for path in encoder_paths:
-            path.mkdir(parents=True, exist_ok=True)
-
-        model_path.mkdir(parents=True, exist_ok=True)

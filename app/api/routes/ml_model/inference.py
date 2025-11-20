@@ -24,7 +24,7 @@ async def predict_episode_pertinence(
     """
     Predict if an episode is PERTINENTE or NO PERTINENTE using ML models.
 
-    This endpoint uses trained ML models (Random Forest or XGBoost) to predict
+    This endpoint uses trained ML model to predict
     the pertinence classification of a medical episode based on patient data,
     vital signs, procedures, and laboratory results.
 
@@ -41,9 +41,8 @@ async def predict_episode_pertinence(
         HTTPException: If prediction fails or invalid model type
     """
     try:
-        # Extract episode data (excluding model_type)
+
         episode_data = payload.model_dump(exclude={"id_episodio", "stage", "model_type", "numero_episodio"})
-        # Make prediction
         result = await InferenceService.predict_episode_pertinence(
             episode_data=episode_data,
             current_user=current_user,
@@ -52,12 +51,12 @@ async def predict_episode_pertinence(
 
         episode_id = payload.id_episodio
         if episode_id:
-            # Buscar el episodio por numero_episodio
+
             res = await db.execute(select(Episode).where(Episode.id == episode_id))
             ep = res.scalar_one_or_none()
 
             if ep:
-                # Actualizar la columna recomendacion_modelo sin errores
+
                 try:
                     await db.execute(
                         update(Episode)
@@ -71,8 +70,8 @@ async def predict_episode_pertinence(
         print(result)
         return result
 
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

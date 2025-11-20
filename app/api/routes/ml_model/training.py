@@ -3,15 +3,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.databases.postgresql.models import User
 from app.services.auth_service import require_admin
-from app.schemas.ml_model.training import TrainingRequest
+
 from app.services.ml_model_services.training_service import TrainingService
 
 router = APIRouter(prefix="/training", tags=["ML Model - Training"])
 
-@router.post("/", status_code=status.HTTP_200_OK)
+@router.post("/{stage}", status_code=status.HTTP_200_OK)
 async def trigger_training(
-    payload: TrainingRequest,
-    current_user: Annotated[User, Depends(require_admin)]
+    current_user: Annotated[User, Depends(require_admin)],
+    stage: str = "prod",
 ):
     """
     Launch the ML model training pipeline manually via endpoint.
@@ -22,7 +22,6 @@ async def trigger_training(
             detail="Admin role required to train models",
         )
     try:
-        stage = payload.stage
         service = TrainingService(stage=stage)
         result = await service.run_training()
 

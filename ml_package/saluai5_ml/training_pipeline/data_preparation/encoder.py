@@ -4,7 +4,7 @@ from typing import List
 import joblib
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler, MultiLabelBinarizer, OneHotEncoder
-
+import os
 
 class DataEncoder:
 
@@ -163,7 +163,3 @@ class DataEncoder:
             f"✅ Datos codificados: {len(self.features_train)} filas de entrenamiento y {len(self.features_test)} filas de testing"
         )
 
-
-if __name__ == "__main__":
-    encoder = DataEncoder()
-    print(encoder)
