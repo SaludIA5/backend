@@ -29,7 +29,8 @@ app.add_middleware(
     ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["Authorization", "Content-Type", "Cookie", "*"],
+    expose_headers=["*"],
 )
 
 app.include_router(router, prefix=global_config.api_prefix)

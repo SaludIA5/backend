@@ -1,4 +1,4 @@
-"""Prediction endpoints for ML models."""
+"""Inference endpoint for ML models."""
 
 from typing import Annotated
 
