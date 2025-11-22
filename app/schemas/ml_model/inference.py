@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 
 class InferenceRequest(BaseModel):
-    """Request schema for episode prediction."""
+    """Request schema for episode pertinence prediction."""
 
     id_episodio: Optional[int] = None
     stage: Optional[str] = None
