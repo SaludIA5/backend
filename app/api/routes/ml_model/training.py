@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
 
+from app.core.config import settings
 from app.databases.postgresql.models import User
 from app.services.auth_service import require_admin
 from app.services.ml_model_services.training_service import TrainingService
@@ -38,3 +39,21 @@ async def trigger_training(
             status_code=500,
             detail=f"Error running training pipeline: {str(e)}",
         )
+
+
+@router.post("/internal/trigger-background", status_code=status.HTTP_202_ACCEPTED)
+async def trigger_training_background(
+    background_tasks: BackgroundTasks,
+    x_token: str = Header(..., description="Secret token for automation"),
+    stage: str = "prod",
+):
+
+    if x_token != settings.security_config.admin_secret:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token",
+        )
+
+    background_tasks.add_task(TrainingService.execute_background_task, stage)
+
+    return {"message": "Pipeline iniciado."}
