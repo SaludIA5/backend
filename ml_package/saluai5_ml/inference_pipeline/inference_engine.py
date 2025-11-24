@@ -80,7 +80,6 @@ class InferenceEngine:
     def predict_and_build_payload(self, model, df):
         """
         Ejecuta la predicción del modelo y construye el payload ordenado.
-        Soporta modelos con clases string o numéricas.
         """
 
         # Predicción

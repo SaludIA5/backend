@@ -59,6 +59,7 @@ class SecurityConfig(BaseSettings):
     secret_key: str
     algorithm: str
     access_token_expire_minutes: int = 30
+    admin_secret: str
 
 
 class AppConfig(BaseSettings):

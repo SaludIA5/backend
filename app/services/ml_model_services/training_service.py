@@ -1,7 +1,10 @@
 import asyncio
+import logging
 
 from app.databases.postgresql.db import get_async_session_local
 from ml_package.saluai5_ml.training_pipeline.orchestrator import TrainingOrchestrator
+
+logger = logging.getLogger("uvicorn.error")
 
 
 class TrainingService:
@@ -24,6 +27,32 @@ class TrainingService:
             result = await self.orchestrator.run(session)
 
         return result
+
+    @staticmethod
+    async def execute_background_task(stage: str):
+        """
+        Método estático para ser llamado por BackgroundTasks.
+        Maneja logs y excepciones ya que no hay respuesta HTTP.
+        """
+        logger.info(
+            f"🔄 [BACKGROUND] Iniciando reentrenamiento automático para stage: {stage}"
+        )
+
+        try:
+            service = TrainingService(stage=stage)
+            result = await service.run_training()
+
+            logger.info(
+                "[BACKGROUND] Entrenamiento automático finalizado exitosamente."
+            )
+            logger.info(
+                f"📊 Nueva versión: {result.version} | Fecha: {result.trained_at}"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"❌ [BACKGROUND] Falló el pipeline de entrenamiento automático: {str(e)}"
+            )
 
 
 if __name__ == "__main__":
