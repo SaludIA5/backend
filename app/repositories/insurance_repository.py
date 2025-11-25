@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -48,7 +48,10 @@ class InsuranceRepository:
             .outerjoin(InsuranceReview, Episode.id == InsuranceReview.episode_id)
             .where(
                 Episode.fecha_alta.is_not(None),  # Discharged
-                InsuranceReview.id.is_(None),  # No review yet
+                or_(
+                    InsuranceReview.id.is_(None),
+                    InsuranceReview.is_pertinent.is_(None),
+                ),
             )
             .options(
                 selectinload(Episode.diagnostics),

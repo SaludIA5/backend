@@ -5,11 +5,12 @@ from pydantic import BaseModel, ConfigDict
 
 
 class InsuranceReviewBase(BaseModel):
-    is_pertinent: bool
+    is_pertinent: Optional[bool] = None
 
 
 class InsuranceReviewCreate(InsuranceReviewBase):
     episode_id: int
+    is_pertinent: bool
 
 
 class InsuranceReviewResponse(InsuranceReviewBase):
@@ -22,4 +23,4 @@ class InsuranceReviewResponse(InsuranceReviewBase):
 
 
 class InsuranceReviewUpdate(BaseModel):
-    is_pertinent: bool
+    is_pertinent: Optional[bool] = None

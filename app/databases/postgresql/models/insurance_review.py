@@ -13,6 +13,6 @@ class InsuranceReview(BaseModel):
         nullable=False,
         unique=True,
     )
-    is_pertinent = Column(Boolean, nullable=False)
+    is_pertinent = Column(Boolean, nullable=True)
 
     episode = relationship("Episode", back_populates="insurance_review")
