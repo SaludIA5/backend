@@ -1,8 +1,8 @@
 from .diagnostic import DiagnosticRepository
+from .doctor_summary import DoctorSummaryRepository
 from .episode import EpisodeRepository
 from .patient import PatientRepository
 from .user import UserRepository
-from .doctor_summary import DoctorSummaryRepository
 
 __all__ = [
     "PatientRepository",
@@ -10,5 +10,4 @@ __all__ = [
     "EpisodeRepository",
     "UserRepository",
     "DoctorSummaryRepository",
-
 ]

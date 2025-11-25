@@ -6,6 +6,7 @@ from .diagnostic import (
     DiagnosticPageMeta,
     DiagnosticUpdate,
 )
+from .doctor_summary import DoctorSummaryCreate, DoctorSummaryRead
 from .episode import (
     EpisodeCreate,
     EpisodeOut,
@@ -28,7 +29,6 @@ from .patient import (
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 from .validation import ValidateEpisodeRequest
-from .doctor_summary import DoctorSummaryCreate, DoctorSummaryRead
 
 __all__ = [
     "PatientCreate",

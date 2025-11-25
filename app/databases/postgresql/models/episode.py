@@ -119,3 +119,10 @@ class Episode(BaseModel):
     doctor_summaries = relationship(
         "DoctorSummary", back_populates="episode", cascade="all, delete-orphan"
     )
+
+    insurance_review = relationship(
+        "InsuranceReview",
+        back_populates="episode",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
