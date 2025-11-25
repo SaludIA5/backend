@@ -7,6 +7,7 @@ from .model_versions import ModelVersion
 from .patient import Patient
 from .user import User
 from .user_episodes_validations import UserEpisodeValidation
+from .doctor_summary import DoctorSummary
 
 __all__ = [
     # "BaseModel",
@@ -17,4 +18,5 @@ __all__ = [
     "UserEpisodeValidation",
     "episode_user",
     "ModelVersion",
+    "DoctorSummary",
 ]

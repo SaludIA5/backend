@@ -28,6 +28,7 @@ from .patient import (
 )
 from .user import UserCreate, UserOut, UserPage, UserPageMeta, UserUpdate
 from .validation import ValidateEpisodeRequest
+from .doctor_summary import DoctorSummaryCreate, DoctorSummaryRead
 
 __all__ = [
     "PatientCreate",
@@ -59,4 +60,6 @@ __all__ = [
     "EpisodeWithDoctor",
     "EpisodeWithTeam",
     "EpisodeWithTeamAndDoctor",
+    "DoctorSummaryCreate",
+    "DoctorSummaryRead",
 ]
