@@ -8,6 +8,7 @@ from .routes.ml_model import router as ml_model_router
 from .routes.patients import router as patients_router
 from .routes.predictions import router as predictions_router
 from .routes.users import router as users_router
+from .routes.doctor_summary import router as doctor_summary_router
 
 router = APIRouter()
 router.include_router(patients_router)
@@ -18,3 +19,4 @@ router.include_router(auth_router)
 router.include_router(predictions_router)
 router.include_router(metrics_router)
 router.include_router(ml_model_router)
+router.include_router(doctor_summary_router)
