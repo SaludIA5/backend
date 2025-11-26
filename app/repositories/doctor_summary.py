@@ -1,7 +1,10 @@
-from typing import Sequence, Optional
+from typing import Optional, Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.databases.postgresql.models.doctor_summary import DoctorSummary
+
 
 class DoctorSummaryRepository:
     @staticmethod

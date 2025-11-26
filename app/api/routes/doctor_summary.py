@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import User
-from app.schemas.doctor_summary import DoctorSummaryCreate, DoctorSummaryRead
 from app.repositories.doctor_summary import DoctorSummaryRepository
+from app.schemas.doctor_summary import DoctorSummaryCreate, DoctorSummaryRead
 from app.services.auth_service import get_current_user
 
 router = APIRouter(prefix="/doctor-summaries", tags=["doctor-summaries"])
@@ -83,4 +83,3 @@ async def list_doctor_summaries_by_episode(
         db, episode_id=episode_id, offset=offset, limit=limit
     )
     return items
-
