@@ -115,3 +115,7 @@ class Episode(BaseModel):
     team_users = relationship(
         "User", secondary="episode_user", back_populates="assigned_episodes"
     )
+
+    doctor_summaries = relationship(
+        "DoctorSummary", back_populates="episode", cascade="all, delete-orphan"
+    )

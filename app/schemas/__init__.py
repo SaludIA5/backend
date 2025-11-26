@@ -6,6 +6,7 @@ from .diagnostic import (
     DiagnosticPageMeta,
     DiagnosticUpdate,
 )
+from .doctor_summary import DoctorSummaryCreate, DoctorSummaryRead
 from .episode import (
     EpisodeCreate,
     EpisodeOut,
@@ -59,4 +60,6 @@ __all__ = [
     "EpisodeWithDoctor",
     "EpisodeWithTeam",
     "EpisodeWithTeamAndDoctor",
+    "DoctorSummaryCreate",
+    "DoctorSummaryRead",
 ]
