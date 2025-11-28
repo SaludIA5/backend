@@ -214,10 +214,14 @@ class MetricRepository:
                 User.id,
                 User.name,
                 func.count(Episode.id).label("total_validations"),
-                func.sum(case((Episode.validacion.isnot(None), 1), else_=0)).label(
+                func.sum(
+                    case((Episode.validacion == "PERTINENTE", 1), else_=0)
+                ).label(
                     "accepted_validations"
                 ),
-                func.sum(case((Episode.validacion.is_(None), 1), else_=0)).label(
+                func.sum(
+                    case((Episode.validacion == "NO PERTINENTE", 1), else_=0)
+                ).label(
                     "rejected_validations"
                 ),
                 func.sum(
