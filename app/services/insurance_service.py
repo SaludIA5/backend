@@ -12,7 +12,7 @@ class InsuranceService:
     async def review_episode(
         db: AsyncSession,
         episode_id: int,
-        is_pertinent: bool,
+        is_pertinent: Optional[bool],
     ) -> InsuranceReview:
         exists = await db.execute(select(Episode.id).where(Episode.id == episode_id))
         if exists.scalar_one_or_none() is None:
