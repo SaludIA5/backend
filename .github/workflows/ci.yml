@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - name: Wait for Railway Deploy and Trigger
+      - name: Wait for Railway Deploy and Trigger Automatic Training
         env:
           HEALTH_URL: "https://backend-production-a6c92.up.railway.app/health" 
           TRAIN_URL: "https://backend-production-a6c92.up.railway.app/ml-model/training/internal/trigger-background?stage=prod"
