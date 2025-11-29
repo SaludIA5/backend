@@ -3,8 +3,7 @@ name: Trigger Weekly Automatic Retraining ML Model
 on:
   # Entrenamiento atumático 01:00 UTC Sábado = 22:00 Viernes en Chile (Horario Verano UTC-3)
   schedule:
-    # - cron: '0 1 * * 6'
-    - cron: '55 2 * * 1' 
+    - cron: '0 1 * * 6'
   workflow_dispatch:
 
 jobs:
