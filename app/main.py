@@ -2,14 +2,23 @@ import logging
 from datetime import datetime
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from limits import parse
+from limits.storage import MemoryStorage
+from limits.strategies import FixedWindowRateLimiter
+from slowapi.util import get_remote_address
 
 from app.api.router import router
 from app.core.config import global_config
 from app.params import FRONTEND_PORT, FRONTEND_URL
 
 logging.basicConfig(level=logging.INFO)
+
+memory_storage = MemoryStorage()
+limiter_strategy = FixedWindowRateLimiter(memory_storage)
+global_limit = parse("60/minute")
 
 app = FastAPI(
     title=global_config.title,
@@ -19,6 +28,21 @@ app = FastAPI(
     docs_url=global_config.docs_url,
     redoc_url=global_config.redoc_url,
 )
+
+
+@app.middleware("http")
+async def global_rate_limit_middleware(request: Request, call_next):
+    ip = get_remote_address(request)
+
+    if not limiter_strategy.test(global_limit, ip):
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Rate limit exceeded: 60 requests per minute"},
+        )
+
+    limiter_strategy.hit(global_limit, ip)
+    return await call_next(request)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,7 +66,7 @@ def read_root():
     return {"message": welcome_message}
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check():
     return {"status": "healthy"}
 
