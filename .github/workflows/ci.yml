@@ -37,3 +37,39 @@ jobs:
         run: |
           poetry install --with dev --no-interaction --no-root
           poetry run pytest || echo "No tests found yet"
+          
+  trigger-automatic-training:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Railway Deploy and Trigger
+        env:
+          HEALTH_URL: "https://backend-production-a6c92.up.railway.app/health" 
+          TRAIN_URL: "https://backend-production-a6c92.up.railway.app/ml-model/training/internal/trigger-background?stage=prod"
+          SECRET_TOKEN: ${{ secrets.ADMIN_SECRET }}
+        run: |
+          echo "⏳ Esperando 10 minutos para dar tiempo al deploy de Railway..."
+          sleep 600
+
+          echo "🔎 Verificando si el servidor está deployado..."
+
+          for i in {1..10}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL")
+            if [ "$HTTP_CODE" == "200" ]; then
+              echo "✅ Servidor online. Iniciando entrenamiento..."
+              
+              curl -X POST "$TRAIN_URL" \
+                -H "accept: application/json" \
+                -H "x-token: $SECRET_TOKEN" \
+                --fail-with-body \
+                --verbose
+              
+              exit 0
+            fi
+            echo "zzz... Servidor no responde aún (Código: $HTTP_CODE). Reintentando en 10s..."
+            sleep 10
+          done
+
+          echo "❌ El servidor no respondió a tiempo después del deploy."
+          exit 1
