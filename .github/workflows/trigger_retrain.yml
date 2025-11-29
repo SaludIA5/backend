@@ -3,7 +3,7 @@ name: Trigger Weekly Automatic Retraining ML Model
 on:
   # Entrenamiento atumático 01:00 UTC Sábado = 22:00 Viernes en Chile (Horario Verano UTC-3)
   schedule:
-    - cron: '0 4 * * 6'
+    - cron: '0 5 * * 6'
   workflow_dispatch:
 
 jobs:
@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Wake up Railway and Start Training
         env:
-          API_URL: "https://backend-production-c166.up.railway.app/ml-model/training/internal/trigger-background?stage=prod"
+          API_URL: "https://backend-production-a6c92.up.railway.app/ml-model/training/internal/trigger-background?stage=prod"
           SECRET_TOKEN: ${{ secrets.ADMIN_SECRET }}
         run: |
           echo "Enviando señal de reentrenamiento automático a: $API_URL"
