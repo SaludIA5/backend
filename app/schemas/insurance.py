@@ -10,7 +10,7 @@ class InsuranceReviewBase(BaseModel):
 
 class InsuranceReviewCreate(InsuranceReviewBase):
     episode_id: int
-    is_pertinent: bool
+    is_pertinent: Optional[bool] = None
 
 
 class InsuranceReviewResponse(InsuranceReviewBase):

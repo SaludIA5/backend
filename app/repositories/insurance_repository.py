@@ -12,7 +12,7 @@ class InsuranceRepository:
     async def create_or_update(
         db: AsyncSession,
         episode_id: int,
-        is_pertinent: bool,
+        is_pertinent: Optional[bool],
     ) -> InsuranceReview:
         # Check if exists
         stmt = select(InsuranceReview).where(InsuranceReview.episode_id == episode_id)
