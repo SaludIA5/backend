@@ -74,13 +74,12 @@ async def get_diagnostic(
     return diag
 
 
-# UPDATE (Admin)
 @router.patch("/{diag_id}", response_model=DiagnosticOut)
 async def update_diagnostic(
     diag_id: int,
     payload: DiagnosticUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(require_admin)],
+    _current: Annotated[User, Depends(get_current_user)] = None,
 ):
     diag = await DiagnosticRepository.get_by_id(db, diag_id)
     if not diag:
@@ -93,12 +92,11 @@ async def update_diagnostic(
         raise HTTPException(status_code=409, detail="CIE code ya registrado")
 
 
-# DELETE (Admin)
 @router.delete("/{diag_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_diagnostic(
     diag_id: int,
     db: Annotated[AsyncSession, Depends(get_db)],
-    _: Annotated[User, Depends(require_admin)],
+    _current: Annotated[User, Depends(get_current_user)] = None,
 ):
     diag = await DiagnosticRepository.get_by_id(db, diag_id)
     if not diag:
