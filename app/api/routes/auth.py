@@ -23,6 +23,7 @@ def create_access_token(
     expires_delta: timedelta | None = None,
     is_doctor: bool = False,
     is_chief_doctor: bool = False,
+    is_admin: bool = False,
 ) -> str:
     expire = datetime.utcnow() + (
         expires_delta
@@ -34,6 +35,7 @@ def create_access_token(
         "exp": expire,
         "is_doctor": is_doctor,
         "is_chief_doctor": is_chief_doctor,
+        "is_admin": is_admin,
     }
     return jwt.encode(
         to_encode,
@@ -54,11 +56,12 @@ async def login(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
         )
-
+    print(user)
     token = create_access_token(
         subject=str(user.id),
         is_doctor=user.is_doctor,
         is_chief_doctor=user.is_chief_doctor,
+        is_admin=user.is_admin,
     )
 
     is_production = settings.app_config.environment.lower() == "production"
