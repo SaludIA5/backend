@@ -157,7 +157,6 @@ class EpisodeUpdate(BaseModel):
 # -------- Outputs --------
 class EpisodeOut(BaseModel):
 
-
     id: int
     patient_id: int
     numero_episodio: Optional[str] = None
@@ -215,7 +214,7 @@ class EpisodeOut(BaseModel):
     validacion_jefe_turno: Optional[str] = None
 
     # IDs de diagnósticos para asociar (muchos-a-muchos)
-    #diagnostics_ids: Optional[List[int]] = None
+    # diagnostics_ids: Optional[List[int]] = None
     diagnostics: List[DiagnosticLite] = Field(default_factory=list)
 
     class Config:
