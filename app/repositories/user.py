@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List, Optional, Tuple
 
 from passlib.hash import bcrypt
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -125,8 +125,12 @@ class UserRepository:
     # Delete
     @staticmethod
     async def hard_delete(db: AsyncSession, user: User) -> None:
-        db.delete(user)
-        await db.commit()
+        try:
+            await db.execute(delete(User).where(User.id == user.id))
+            await db.commit()
+        except IntegrityError as e:
+            await db.rollback()
+            raise e
 
     @staticmethod
     async def group_doctors_and_chiefs_by_turn(

@@ -61,3 +61,10 @@ class InsuranceRepository:
         )
         result = await db.execute(stmt)
         return result.scalars().all()
+
+    @staticmethod
+    async def get_all(db: AsyncSession) -> List[InsuranceReview]:
+        """Get all insurance reviews."""
+        stmt = select(InsuranceReview).order_by(InsuranceReview.created_at.desc())
+        result = await db.execute(stmt)
+        return result.scalars().all()

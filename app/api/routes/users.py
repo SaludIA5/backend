@@ -133,5 +133,11 @@ async def delete_user(
     user = await UserRepository.get_by_id(db, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    await UserRepository.hard_delete(db, user)
-    return None
+
+    try:
+        await UserRepository.hard_delete(db, user)
+    except IntegrityError:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete user: user is referenced by other records",
+        )

@@ -1,4 +1,3 @@
-# app/services/auth_service.py
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -9,7 +8,6 @@ from app.core.config import settings
 from app.databases.postgresql.db import get_db
 from app.databases.postgresql.models import User
 
-# Si tienes prefijo /api, ajusta el tokenUrl a ese prefijo:
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=(
         f"{settings.api_prefix}/auth/login"
@@ -31,12 +29,8 @@ def _decode_token(token: str) -> dict:
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    bearer_token: str | None = Depends(oauth2_scheme),  # puede venir o no
+    bearer_token: str | None = Depends(oauth2_scheme),
 ) -> User:
-    """
-    Extrae token desde Authorization Bearer o cookie 'access_token'.
-    Decodifica y carga el usuario desde la DB.
-    """
     token = bearer_token or request.cookies.get("access_token")
     if not token:
         raise HTTPException(
@@ -55,12 +49,12 @@ async def get_current_user(
     user = res.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
+    await db.refresh(user)
     return user
 
 
-# ---- Helpers de autorización por rol ----
 async def require_admin(current_user: User = Depends(get_current_user)) -> User:
-    if not getattr(current_user, "is_admin", False):
+    if not current_user.is_admin:
         raise HTTPException(status_code=403, detail="Admin only")
     return current_user
 
