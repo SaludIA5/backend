@@ -28,3 +28,8 @@ class InsuranceService:
         db: AsyncSession, episode_id: int
     ) -> Optional[InsuranceReview]:
         return await InsuranceRepository.get_by_episode_id(db, episode_id)
+
+    @staticmethod
+    async def get_all_reviews(db: AsyncSession) -> List[InsuranceReview]:
+        """Get all insurance reviews."""
+        return await InsuranceRepository.get_all(db)

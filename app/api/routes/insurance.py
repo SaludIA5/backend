@@ -52,6 +52,23 @@ async def get_pending_reviews(
 
 
 @router.get(
+    "/all",
+    response_model=List[InsuranceReviewResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_all_reviews(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    """
+    Get the insurance review state for all episodes.
+    Only admins can see this list.
+    """
+    reviews = await InsuranceService.get_all_reviews(db)
+    return reviews
+
+
+@router.get(
     "/{episode_id}",
     response_model=InsuranceReviewResponse,
     status_code=status.HTTP_200_OK,
